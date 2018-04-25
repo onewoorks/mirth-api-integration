@@ -2148,7 +2148,7 @@ return;</undeployScript>
       <nextMetaDataId>20</nextMetaDataId>
       <name>HIS Device RESTful</name>
       <description></description>
-      <revision>195</revision>
+      <revision>196</revision>
       <sourceConnector version="3.5.1">
         <metaDataId>0</metaDataId>
         <name>sourceConnector</name>
@@ -2487,9 +2487,9 @@ if(countResult&gt;0){
 		msg[&apos;routePath&apos;] = routePath;
 		var newMessage = msg;
 				
-		if(device_code==&apos;EDP001&apos;){
-			router.routeMessage(&apos;Internal Device RESTful&apos;, JSON.stringify(newMessage));	
-		}
+//		if(device_code==&apos;EDP001&apos;){
+//			router.routeMessage(&apos;Internal Device RESTful&apos;, JSON.stringify(newMessage));	
+//		}
 		
 
 	}
@@ -3577,7 +3577,7 @@ return;</undeployScript>
         <metadata>
           <enabled>true</enabled>
           <lastModified>
-            <time>1524314485939</time>
+            <time>1524497491574</time>
             <timezone>Asia/Kuala_Lumpur</timezone>
           </lastModified>
           <pruningSettings>
@@ -3591,7 +3591,7 @@ return;</undeployScript>
       <nextMetaDataId>23</nextMetaDataId>
       <name>Internal Device RESTful</name>
       <description></description>
-      <revision>161</revision>
+      <revision>183</revision>
       <sourceConnector version="3.5.1">
         <metaDataId>0</metaDataId>
         <name>sourceConnector</name>
@@ -3747,8 +3747,8 @@ switch(route){
 				destinationSet.removeAllExcept(15);
 			break;
 			case &apos;end-process&apos;:
-//				destinationSet.removeAllExcept(14); //endo actual device
-				destinationSet.removeAllExcept(21); //endo simulation device
+				destinationSet.removeAllExcept(14); //endo actual device
+//				destinationSet.removeAllExcept(21); //endo simulation device
 			break;
 		}
 	break;
@@ -4269,9 +4269,15 @@ if(sourceMap.get(&apos;method&apos;)==&apos;GET&apos;){
               <com.mirth.connect.plugins.javascriptstep.JavaScriptStep>
                 <name>Body Constructor</name>
                 <sequenceNumber>0</sequenceNumber>
-                <script>logger.info(&apos;coming here&apos;);
-//var msg = JSON.parse(connectorMessage.getRawData());
-//channelMap.put(&apos;endo_order_id&apos;,msg.his_order_id);</script>
+                <script>var contextPath = sourceMap.get(&apos;contextPath&apos;).toString();
+var params = contextPath.split(&apos;/&apos;);
+var his_order_id = String(params[4]);
+logger.info(&apos;his order id &gt;&gt; &apos; + his_order_id);
+//	var params = contextPath.substring(prefixService.length).split(&apos;/&apos;);
+//	var route = String(params[1]);
+//	var routePath = String(params[2]);
+
+channelMap.put(&apos;endo_order_id&apos;,his_order_id);</script>
               </com.mirth.connect.plugins.javascriptstep.JavaScriptStep>
             </elements>
             <inboundTemplate encoding="base64"></inboundTemplate>
@@ -4360,7 +4366,7 @@ if(sourceMap.get(&apos;method&apos;)==&apos;GET&apos;){
             <username></username>
             <password></password>
             <content>${endoOrderMessage}</content>
-            <contentType>text/plain</contentType>
+            <contentType>application/json</contentType>
             <dataTypeBinary>false</dataTypeBinary>
             <charset>UTF-8</charset>
             <socketTimeout>30000</socketTimeout>
@@ -4371,10 +4377,10 @@ if(sourceMap.get(&apos;method&apos;)==&apos;GET&apos;){
                 <sequenceNumber>0</sequenceNumber>
                 <script>var msgReceive = JSON.parse(connectorMessage.getRawData());
 
-var patient_id = msgReceive.patient.patient_id;
-var patient_name = msgReceive.patient.patient_name;
-var order_id = msgReceive.order_data.his_order_id;
-var patient_ic = msgReceive.patient.patient_ic;
+var patient_id = msgReceive.patient_id;
+var patient_name = msgReceive.patient_name;
+var order_id = msgReceive.his_order_id;
+var patient_ic = msgReceive.patient_ic;
 
 var sendMessage = &apos;{&apos;;
 sendMessage += &apos;&quot;patient_id&quot;:&quot;&apos;+ patient_id +&apos;&quot;, &apos;;
@@ -4383,6 +4389,7 @@ sendMessage += &apos;&quot;patient_name&quot;:&quot;&apos;+ patient_name + &apos
 sendMessage += &apos;&quot;order_id&quot;:&quot;&apos;+ order_id +&apos;&quot;&apos;;
 sendMessage += &apos;}&apos;;
 
+logger.info(sendMessage);
 channelMap.put(&apos;endoOrderMessage&apos;,sendMessage);</script>
               </com.mirth.connect.plugins.javascriptstep.JavaScriptStep>
             </elements>
@@ -4540,7 +4547,7 @@ try {
               <queueBufferSize>1000</queueBufferSize>
               <reattachAttachments>true</reattachAttachments>
             </destinationConnectorProperties>
-            <host>http://localhost:5000/order/${his_order_id}</host>
+            <host>http://172.19.64.200:5000/order/${his_order_id}</host>
             <useProxyServer>false</useProxyServer>
             <proxyAddress></proxyAddress>
             <proxyPort></proxyPort>
@@ -4768,7 +4775,7 @@ return;</undeployScript>
         <metadata>
           <enabled>true</enabled>
           <lastModified>
-            <time>1524312340573</time>
+            <time>1524496036861</time>
             <timezone>Asia/Kuala_Lumpur</timezone>
           </lastModified>
           <pruningSettings>
@@ -4782,7 +4789,7 @@ return;</undeployScript>
       <nextMetaDataId>22</nextMetaDataId>
       <name>HIS Sample Data</name>
       <description></description>
-      <revision>119</revision>
+      <revision>121</revision>
       <sourceConnector version="3.5.1">
         <metaDataId>0</metaDataId>
         <name>sourceConnector</name>
@@ -5723,7 +5730,8 @@ if(sourceMap.get(&apos;method&apos;)==&apos;GET&apos;){
 			query += &apos;his_order_id = ? &apos;;
 			queryParameters.push(sourceMap.get(&apos;parameters&apos;).getParameter(&apos;his_order_id&apos;));
 		}
-	
+
+		query += &quot; ORDER BY id DESC LIMIT 1 &quot;;
 		var result = $(&apos;functExecuteQuery&apos;)(query,queryParameters);
 
 		var countResult = result.size();
@@ -5957,7 +5965,7 @@ return;</undeployScript>
         <metadata>
           <enabled>true</enabled>
           <lastModified>
-            <time>1524300647763</time>
+            <time>1524394857991</time>
             <timezone>Asia/Kuala_Lumpur</timezone>
           </lastModified>
           <pruningSettings>
