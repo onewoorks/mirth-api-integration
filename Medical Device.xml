@@ -1,9 +1,9 @@
 <channelGroup version="3.5.1">
   <id>f25853b7-66e1-40a2-bfad-f18f9d2c1850</id>
   <name>Medical Device</name>
-  <revision>8</revision>
+  <revision>11</revision>
   <lastModified>
-    <time>1524308974228</time>
+    <time>1527137218821</time>
     <timezone>Asia/Kuala_Lumpur</timezone>
   </lastModified>
   <description></description>
@@ -1505,7 +1505,7 @@ return;</undeployScript>
         <metadata>
           <enabled>false</enabled>
           <lastModified>
-            <time>1524162123273</time>
+            <time>1524498694039</time>
             <timezone>Asia/Kuala_Lumpur</timezone>
           </lastModified>
           <pruningSettings>
@@ -2148,7 +2148,7 @@ return;</undeployScript>
       <nextMetaDataId>20</nextMetaDataId>
       <name>HIS Device RESTful</name>
       <description></description>
-      <revision>196</revision>
+      <revision>221</revision>
       <sourceConnector version="3.5.1">
         <metaDataId>0</metaDataId>
         <name>sourceConnector</name>
@@ -3152,7 +3152,6 @@ logger.info(&quot;text:&quot;+text);
 		var result_data = JSON.stringify(msg.result_exam_data);
 		var order_status = msg.result_exam_data.order_status;
 
-		
 		var query = &quot;INSERT INTO result_exam (his_order_id, patient_id, result_type, result_data) VALUES (?,?,?,?)&quot;
 		var queryParameters = [his_order_id, patient_id, result_type, result_data];
 		$(&apos;functExecuteInsertQuery&apos;)(query,queryParameters);
@@ -3161,14 +3160,13 @@ logger.info(&quot;text:&quot;+text);
 		var queryUpdateOrderStatusParameters = [order_status,  patient_id, his_order_id];
 		$(&apos;functExecuteInsertQuery&apos;)(queryUpdateOrderStatus,queryUpdateOrderStatusParameters);
 
-		var queryOrdersCoe = &quot;UPDATE his_patient_coe SET status = &apos;COMPLETED&apos; WHERE his_order_id = ? AND status = &apos;SUBMITTED&apos;&quot;;
+		var queryOrdersCoe = &quot;UPDATE his_patient_coe SET status = &apos;COMPLETED&apos; WHERE his_order_id = ? &quot;;
 		var queryParametersOrdersCoe = [his_order_id];
 		$(&apos;functExecuteInsertQuery&apos;)(queryOrdersCoe,queryParametersOrdersCoe);
 
 		if(his_order_id==null || his_order_id==&apos;&apos;){
 			logger.info(&apos;takde order id.. ni mesti spiro atau fundus&apos;);
 		}
-		
 		
 	}
 }</script>
@@ -3251,23 +3249,42 @@ if(sourceMap.get(&apos;method&apos;)==&apos;POST&apos;){
 		if(his_order_id==null || his_order_id==&apos;&apos;){
 			var device_code = &apos;&apos;;
 			switch(result_type){
-				case &apos;application/jpeg&apos;: //fundus
-					device_code = &quot;FDM001&quot;;
+				case &apos;image/jpeg&apos;: //fundus
+					device_code = &quot;FCM001&quot;;
 				break
 				case &apos;application/pdf&apos;: //spirometer
 					device_code = &quot;SPM001&quot;;
 				break;
 			}
+			logger.info(&apos;device code &apos; + device_code);
+			logger.info(&apos;patient id &apos; + patient_id);
 			var query = &quot;SELECT his_order_id, device_code FROM orders &quot;;
 			query += &quot;WHERE patient_id=? AND device_code =? AND DATE(his_appointment_date)=DATE(NOW()) &quot;;
-			
+//			query += &quot;WHERE identification_no=? AND device_code =? AND DATE(his_appointment_date)=DATE(NOW()) &quot;;
 			var queryParameters = [patient_id, device_code];
 			var result = $(&apos;functExecuteQuery&apos;)(query,queryParameters);
 
-			var his_order_ids;
+			var his_order_ids = &apos;&apos;;
 			while(result.next()){
 				his_order_ids += result.getString(1);
-				}	
+				}
+
+			var updateExamResult = &quot;UPDATE result_exam SET his_order_id = &apos;&quot;+his_order_ids+&quot;&apos;&quot;;
+			updateExamResult += &quot;WHERE patient_id=? AND his_order_id=&apos;&apos; &quot;;
+			$(&apos;functExecuteInsertQuery&apos;)(updateExamResult,[patient_id]);	
+
+			var updateOrder = &quot;UPDATE orders SET order_status = &apos;COMPLETED&apos; &quot;;
+			updateOrder += &quot;WHERE patient_id=? AND device_code =? AND DATE(his_appointment_date)=DATE(NOW()) &quot;;
+			var updateOrderParameters = [patient_id, device_code];
+			$(&apos;functExecuteInsertQuery&apos;)(updateOrder,updateOrderParameters);
+
+			var updateOrderCoe = &quot;UPDATE his_patient_coe SET status = &apos;COMPLETED&apos;, attachment = 1 &quot;;
+			updateOrderCoe += &quot;WHERE patient_id=? AND his_order_id =?  &quot;;
+
+			var checkq = &quot;UPDATE his_patient_coe SET status = &apos;COMPLETED&apos;, attachment = 1 WHERE patient_id=&apos;&quot;+patient_id+&quot;&apos; AND his_order_id =&apos;&quot;+his_order_ids+&quot;&apos;  &quot;;
+			var updateOrderCoeParameters = [patient_id, his_order_ids];
+			$(&apos;functExecuteInsertQuery&apos;)(checkq,[]);
+
 		}
 	}
 }</script>
@@ -3577,7 +3594,7 @@ return;</undeployScript>
         <metadata>
           <enabled>true</enabled>
           <lastModified>
-            <time>1524497491574</time>
+            <time>1524542588391</time>
             <timezone>Asia/Kuala_Lumpur</timezone>
           </lastModified>
           <pruningSettings>
@@ -3591,7 +3608,7 @@ return;</undeployScript>
       <nextMetaDataId>23</nextMetaDataId>
       <name>Internal Device RESTful</name>
       <description></description>
-      <revision>183</revision>
+      <revision>191</revision>
       <sourceConnector version="3.5.1">
         <metaDataId>0</metaDataId>
         <name>sourceConnector</name>
@@ -3925,7 +3942,7 @@ RyIsCgkib3JkZXJlZF9ieSIgOiAiQWxpIEFidSIsCgkibW9kYWxpdHkiIDogIlVTIgp9</inboundTem
           <properties class="com.mirth.connect.connectors.http.HttpDispatcherProperties" version="3.5.1">
             <pluginProperties/>
             <destinationConnectorProperties version="3.5.1">
-              <queueEnabled>true</queueEnabled>
+              <queueEnabled>false</queueEnabled>
               <sendFirst>false</sendFirst>
               <retryIntervalMillis>10000</retryIntervalMillis>
               <regenerateTemplate>false</regenerateTemplate>
@@ -3973,9 +3990,9 @@ RyIsCgkib3JkZXJlZF9ieSIgOiAiQWxpIEFidSIsCgkibW9kYWxpdHkiIDogIlVTIgp9</inboundTem
               <com.mirth.connect.plugins.javascriptstep.JavaScriptStep>
                 <name>ENDO Body Content Prepare</name>
                 <sequenceNumber>0</sequenceNumber>
-                <script>if(sourceMap.get(&apos;method&apos;)==&apos;POST&apos;){
-	logger.info(connectorMessage.getRawData())
-}</script>
+                <script>//if(sourceMap.get(&apos;method&apos;)==&apos;POST&apos;){
+//	logger.info(connectorMessage.getRawData())
+//}</script>
               </com.mirth.connect.plugins.javascriptstep.JavaScriptStep>
             </elements>
             <inboundTemplate encoding="base64">ewoidHhuX2lkIjoiMTAwIgp9</inboundTemplate>
@@ -4133,7 +4150,7 @@ if(sourceMap.get(&apos;method&apos;)==&apos;POST&apos;){
             </destinationConnectorProperties>
             <script>
 if(sourceMap.get(&apos;method&apos;)==&apos;GET&apos;){
-	var query = &apos;SELECT d.medical_device, d.procedure, d.dicom_worklist, d.online_status &apos;;
+	var query = &apos;SELECT d.medical_device, d.procedure, d.dicom_worklist, d.online_status, d.device_name &apos;;
 	query += &apos;FROM device d&apos;;
 	var queryParameters = [];
 
@@ -4153,7 +4170,8 @@ if(sourceMap.get(&apos;method&apos;)==&apos;GET&apos;){
 		device += &apos;&quot;medical_device&quot;:&quot;&apos;+result.getString(1)+&apos;&quot;,&apos;;
 		device += &apos;&quot;procedure&quot;:&quot;&apos;+result.getString(2)+&apos;&quot;, &apos;;
 		device += &apos;&quot;dicom_worklist&quot;:&quot;&apos;+result.getString(3)+&apos;&quot;,&apos;
-		device += &apos;&quot;online_status&quot;:&quot;&apos;+result.getString(4)+&apos;&quot; &apos;;
+		device += &apos;&quot;online_status&quot;:&quot;&apos;+result.getString(4)+&apos;&quot;, &apos;;
+		device += &apos;&quot;device_name&quot;:&quot;&apos;+result.getString(5)+&apos;&quot; &apos;;
 		device += &apos;}&apos;;
 		if(count&lt;countResult){
 			device += &apos;, &apos;;
@@ -4390,7 +4408,11 @@ sendMessage += &apos;&quot;order_id&quot;:&quot;&apos;+ order_id +&apos;&quot;&a
 sendMessage += &apos;}&apos;;
 
 logger.info(sendMessage);
-channelMap.put(&apos;endoOrderMessage&apos;,sendMessage);</script>
+channelMap.put(&apos;endoOrderMessage&apos;,sendMessage);
+
+var checkq = &quot;UPDATE his_patient_coe SET status = &apos;IN PROGRESS&apos; WHERE patient_id=&apos;&quot;+patient_id+&quot;&apos; AND his_order_id =&apos;&quot;+order_id+&quot;&apos;  &quot;;
+var updateOrderCoeParameters = [patient_id, order_id];
+$(&apos;functExecuteInsertQuery&apos;)(checkq,[]);</script>
               </com.mirth.connect.plugins.javascriptstep.JavaScriptStep>
             </elements>
             <inboundTemplate encoding="base64"></inboundTemplate>
@@ -4775,7 +4797,7 @@ return;</undeployScript>
         <metadata>
           <enabled>true</enabled>
           <lastModified>
-            <time>1524496036861</time>
+            <time>1526881255096</time>
             <timezone>Asia/Kuala_Lumpur</timezone>
           </lastModified>
           <pruningSettings>
@@ -4789,7 +4811,7 @@ return;</undeployScript>
       <nextMetaDataId>22</nextMetaDataId>
       <name>HIS Sample Data</name>
       <description></description>
-      <revision>121</revision>
+      <revision>125</revision>
       <sourceConnector version="3.5.1">
         <metaDataId>0</metaDataId>
         <name>sourceConnector</name>
@@ -5049,16 +5071,7 @@ RyIsCgkib3JkZXJlZF9ieSIgOiAiQWxpIEFidSIsCgkibW9kYWxpdHkiIDogIlVTIgp9</inboundTem
 		}
 		count++;
 		};
-//
-//	var responseData;
-//	var meta = &apos;{&quot;lastUpdated&quot;:&quot;&apos;+ new Date().toISOString()+&apos;&quot;}&apos;;
-//		responseData = &apos;{&quot;resourceType&quot;:&quot;bundle&quot;,&apos;;
-//		responseData += &apos;&quot;meta&quot;:&apos; + meta + &apos;, &apos;;
-//		responseData += &apos;&quot;type&quot;:&quot;searchset&quot;, &apos;;
-//		responseData += &apos;&quot;total&quot;:&quot;&apos; + countResult + &apos;&quot;, &apos;;
-//		responseData += &apos;&quot;link&quot;:&quot;&quot;, &apos;;
-//		responseData += &apos;&quot;entry&quot;: [&apos;+ addtolist +&apos;]&apos;;
-//		responseData += &apos;}&apos;;
+
 addtolist = &apos;[&apos;+addtolist+&apos;]&apos;;
 		var responseData = $(&apos;responseDataFHIR&apos;)(countResult,addtolist);
 		$(&apos;functFinalResponse&apos;)(responseData);
@@ -5285,7 +5298,7 @@ if(sourceMap.get(&apos;method&apos;)==&apos;GET&apos;){
 		patient_coe += &apos;&quot;audit_trail&quot;:&quot;&apos;+result.getString(12)+&apos;&quot;, &apos;;
 		patient_coe += &apos;&quot;report_type&quot;:&quot;&apos;+result.getString(13)+&apos;&quot;, &apos;;
 		patient_coe += &apos;&quot;report_data&quot;:&apos;+result.getString(14)+&apos;, &apos;;
-		patient_coe += &apos;&quot;patient_id&quot;:&apos;+result.getString(15)+&apos; &apos;;
+		patient_coe += &apos;&quot;patient_id&quot;:&quot;&apos;+result.getString(15)+&apos;&quot; &apos;;
 		patient_coe += &apos;}&apos;;
 		if(count&lt;countResult){
 			patient_coe += &apos;, &apos;;
@@ -5965,7 +5978,7 @@ return;</undeployScript>
         <metadata>
           <enabled>true</enabled>
           <lastModified>
-            <time>1524394857991</time>
+            <time>1524622381099</time>
             <timezone>Asia/Kuala_Lumpur</timezone>
           </lastModified>
           <pruningSettings>
@@ -6197,6 +6210,2202 @@ return;</undeployScript>
           <enabled>true</enabled>
           <lastModified>
             <time>1524311913958</time>
+            <timezone>Asia/Kuala_Lumpur</timezone>
+          </lastModified>
+          <pruningSettings>
+            <archiveEnabled>true</archiveEnabled>
+          </pruningSettings>
+        </metadata>
+      </exportData>
+    </channel>
+    <channel version="3.5.1">
+      <id>6220c7e0-6832-460e-bdab-0557bdc5fb02</id>
+      <nextMetaDataId>8</nextMetaDataId>
+      <name>Flash Air</name>
+      <description></description>
+      <revision>220</revision>
+      <sourceConnector version="3.5.1">
+        <metaDataId>0</metaDataId>
+        <name>sourceConnector</name>
+        <properties class="com.mirth.connect.connectors.http.HttpReceiverProperties" version="3.5.1">
+          <pluginProperties>
+            <com.mirth.connect.plugins.httpauth.NoneHttpAuthProperties version="3.5.1">
+  <authType>NONE</authType>
+            </com.mirth.connect.plugins.httpauth.NoneHttpAuthProperties>
+          </pluginProperties>
+          <listenerConnectorProperties version="3.5.1">
+            <host>0.0.0.0</host>
+            <port>8055</port>
+          </listenerConnectorProperties>
+          <sourceConnectorProperties version="3.5.1">
+            <responseVariable>Postprocessor</responseVariable>
+            <respondAfterProcessing>true</respondAfterProcessing>
+            <processBatch>false</processBatch>
+            <firstResponse>false</firstResponse>
+            <processingThreads>1</processingThreads>
+            <resourceIds class="linked-hash-map">
+              <entry>
+                <string>Default Resource</string>
+                <string>[Default Resource]</string>
+              </entry>
+            </resourceIds>
+            <queueBufferSize>1000</queueBufferSize>
+          </sourceConnectorProperties>
+          <xmlBody>false</xmlBody>
+          <parseMultipart>true</parseMultipart>
+          <includeMetadata>false</includeMetadata>
+          <binaryMimeTypes>application/.*(?&lt;!json|xml)$|image/.*|video/.*|audio/.*</binaryMimeTypes>
+          <binaryMimeTypesRegex>true</binaryMimeTypesRegex>
+          <responseContentType>application/json</responseContentType>
+          <responseDataTypeBinary>false</responseDataTypeBinary>
+          <responseStatusCode></responseStatusCode>
+          <responseHeaders class="linked-hash-map">
+            <entry>
+              <string>Access-Control-Allow-Origin</string>
+              <list>
+                <string>*</string>
+              </list>
+            </entry>
+            <entry>
+              <string>Access-Control-Allow-Methods</string>
+              <list>
+                <string>*</string>
+              </list>
+            </entry>
+            <entry>
+              <string>Access-Control-Allow-Headers</string>
+              <list>
+                <string>*</string>
+              </list>
+            </entry>
+            <entry>
+              <string>Content-Type</string>
+              <list>
+                <string>*</string>
+              </list>
+            </entry>
+          </responseHeaders>
+          <charset>UTF-8</charset>
+          <contextPath>flashair</contextPath>
+          <timeout>0</timeout>
+          <staticResources/>
+        </properties>
+        <transformer version="3.5.1">
+          <elements>
+            <com.mirth.connect.plugins.javascriptstep.JavaScriptStep>
+              <name>Global Functions</name>
+              <sequenceNumber>0</sequenceNumber>
+              <script>function executeQuery(query,queryParameters){
+	var gateway_database = globalChannelMap.get(&apos;gateway_database&apos;);
+	var user = globalChannelMap.get(&apos;gateway_database_user&apos;);
+	var pass = globalChannelMap.get(&apos;gateway_database_pass&apos;);
+	var dbConn;
+	try {
+		dbConn = DatabaseConnectionFactory.createDatabaseConnection(&apos;com.mysql.jdbc.Driver&apos;,&apos;jdbc:mysql://&apos;+gateway_database,user,pass);
+		var result = dbConn.executeCachedQuery(query,queryParameters);
+		return result;
+	} finally {
+		if (dbConn) { 
+			dbConn.close();
+		}
+	}
+}
+
+function executeInsertQuery(query,queryParameters){
+	var dbConn;
+	try {
+		dbConn = DatabaseConnectionFactory.createDatabaseConnection(&apos;com.mysql.jdbc.Driver&apos;,&apos;jdbc:mysql://localhost:3306/integdb&apos;,&apos;root&apos;,&apos;re^mp123&apos;);
+		var result = dbConn.executeUpdate(query,queryParameters);
+		return result;
+	} finally {
+		if (dbConn) { 
+			dbConn.close();
+		}
+	}
+}
+
+function finalResponse(jsonString){
+	channelMap.put(&apos;responseContent&apos;, jsonString);
+	channelMap.put(&apos;responseContentType&apos;, &apos;application/fhir+json&apos;);
+}
+
+function parameterTest(bool){
+	if(bool!==null){
+		return true;
+	} else {
+		return false;
+	}
+}
+
+globalMap.put(&apos;functExecuteQuery&apos;, validate(executeQuery, &apos;&apos;, new Array()));
+globalMap.put(&apos;functExecuteInsertQuery&apos;, validate(executeInsertQuery, &apos;&apos;, new Array()));
+globalMap.put(&apos;functFinalResponse&apos;, validate(finalResponse, &apos;&apos;, new Array()));
+globalMap.put(&apos;functParameterTest&apos;,  validate(parameterTest, &apos;&apos;, new Array()));</script>
+            </com.mirth.connect.plugins.javascriptstep.JavaScriptStep>
+          </elements>
+          <inboundTemplate encoding="base64"></inboundTemplate>
+          <outboundTemplate encoding="base64"></outboundTemplate>
+          <inboundDataType>RAW</inboundDataType>
+          <outboundDataType>RAW</outboundDataType>
+          <inboundProperties class="com.mirth.connect.plugins.datatypes.raw.RawDataTypeProperties" version="3.5.1">
+            <batchProperties class="com.mirth.connect.plugins.datatypes.raw.RawBatchProperties" version="3.5.1">
+              <splitType>JavaScript</splitType>
+              <batchScript></batchScript>
+            </batchProperties>
+          </inboundProperties>
+          <outboundProperties class="com.mirth.connect.plugins.datatypes.raw.RawDataTypeProperties" version="3.5.1">
+            <batchProperties class="com.mirth.connect.plugins.datatypes.raw.RawBatchProperties" version="3.5.1">
+              <splitType>JavaScript</splitType>
+              <batchScript></batchScript>
+            </batchProperties>
+          </outboundProperties>
+        </transformer>
+        <filter version="3.5.1">
+          <elements/>
+        </filter>
+        <transportName>HTTP Listener</transportName>
+        <mode>SOURCE</mode>
+        <enabled>true</enabled>
+        <waitForPrevious>true</waitForPrevious>
+      </sourceConnector>
+      <destinationConnectors>
+        <connector version="3.5.1">
+          <metaDataId>7</metaDataId>
+          <name>TEST PAGE</name>
+          <properties class="com.mirth.connect.connectors.http.HttpDispatcherProperties" version="3.5.1">
+            <pluginProperties/>
+            <destinationConnectorProperties version="3.5.1">
+              <queueEnabled>false</queueEnabled>
+              <sendFirst>false</sendFirst>
+              <retryIntervalMillis>10000</retryIntervalMillis>
+              <regenerateTemplate>false</regenerateTemplate>
+              <retryCount>0</retryCount>
+              <rotate>false</rotate>
+              <includeFilterTransformer>false</includeFilterTransformer>
+              <threadCount>1</threadCount>
+              <threadAssignmentVariable></threadAssignmentVariable>
+              <validateResponse>false</validateResponse>
+              <resourceIds class="linked-hash-map">
+                <entry>
+                  <string>Default Resource</string>
+                  <string>[Default Resource]</string>
+                </entry>
+              </resourceIds>
+              <queueBufferSize>1000</queueBufferSize>
+              <reattachAttachments>true</reattachAttachments>
+            </destinationConnectorProperties>
+            <host>http://172.19.64.65/getSd.php</host>
+            <useProxyServer>false</useProxyServer>
+            <proxyAddress></proxyAddress>
+            <proxyPort></proxyPort>
+            <method>get</method>
+            <headers class="linked-hash-map"/>
+            <parameters class="linked-hash-map"/>
+            <responseXmlBody>false</responseXmlBody>
+            <responseParseMultipart>true</responseParseMultipart>
+            <responseIncludeMetadata>false</responseIncludeMetadata>
+            <responseBinaryMimeTypes>application/.*(?&lt;!json|xml)$|image/.*|video/.*|audio/.*</responseBinaryMimeTypes>
+            <responseBinaryMimeTypesRegex>true</responseBinaryMimeTypesRegex>
+            <multipart>false</multipart>
+            <useAuthentication>false</useAuthentication>
+            <authenticationType>Basic</authenticationType>
+            <usePreemptiveAuthentication>false</usePreemptiveAuthentication>
+            <username></username>
+            <password></password>
+            <content>${message.rawData}</content>
+            <contentType>text/plain</contentType>
+            <dataTypeBinary>false</dataTypeBinary>
+            <charset>UTF-8</charset>
+            <socketTimeout>30000</socketTimeout>
+          </properties>
+          <transformer version="3.5.1">
+            <elements>
+              <com.mirth.connect.plugins.javascriptstep.JavaScriptStep>
+                <sequenceNumber>0</sequenceNumber>
+                <script></script>
+              </com.mirth.connect.plugins.javascriptstep.JavaScriptStep>
+            </elements>
+            <inboundTemplate encoding="base64"></inboundTemplate>
+            <outboundTemplate encoding="base64"></outboundTemplate>
+            <inboundDataType>RAW</inboundDataType>
+            <outboundDataType>RAW</outboundDataType>
+            <inboundProperties class="com.mirth.connect.plugins.datatypes.raw.RawDataTypeProperties" version="3.5.1">
+              <batchProperties class="com.mirth.connect.plugins.datatypes.raw.RawBatchProperties" version="3.5.1">
+                <splitType>JavaScript</splitType>
+                <batchScript></batchScript>
+              </batchProperties>
+            </inboundProperties>
+            <outboundProperties class="com.mirth.connect.plugins.datatypes.raw.RawDataTypeProperties" version="3.5.1">
+              <batchProperties class="com.mirth.connect.plugins.datatypes.raw.RawBatchProperties" version="3.5.1">
+                <splitType>JavaScript</splitType>
+                <batchScript></batchScript>
+              </batchProperties>
+            </outboundProperties>
+          </transformer>
+          <responseTransformer version="3.5.1">
+            <elements/>
+            <inboundDataType>RAW</inboundDataType>
+            <outboundDataType>RAW</outboundDataType>
+            <inboundProperties class="com.mirth.connect.plugins.datatypes.raw.RawDataTypeProperties" version="3.5.1">
+              <batchProperties class="com.mirth.connect.plugins.datatypes.raw.RawBatchProperties" version="3.5.1">
+                <splitType>JavaScript</splitType>
+                <batchScript></batchScript>
+              </batchProperties>
+            </inboundProperties>
+            <outboundProperties class="com.mirth.connect.plugins.datatypes.raw.RawDataTypeProperties" version="3.5.1">
+              <batchProperties class="com.mirth.connect.plugins.datatypes.raw.RawBatchProperties" version="3.5.1">
+                <splitType>JavaScript</splitType>
+                <batchScript></batchScript>
+              </batchProperties>
+            </outboundProperties>
+          </responseTransformer>
+          <filter version="3.5.1">
+            <elements/>
+          </filter>
+          <transportName>HTTP Sender</transportName>
+          <mode>DESTINATION</mode>
+          <enabled>true</enabled>
+          <waitForPrevious>true</waitForPrevious>
+        </connector>
+        <connector version="3.5.1">
+          <metaDataId>1</metaDataId>
+          <name>Read_Content</name>
+          <properties class="com.mirth.connect.connectors.http.HttpDispatcherProperties" version="3.5.1">
+            <pluginProperties/>
+            <destinationConnectorProperties version="3.5.1">
+              <queueEnabled>false</queueEnabled>
+              <sendFirst>false</sendFirst>
+              <retryIntervalMillis>10000</retryIntervalMillis>
+              <regenerateTemplate>false</regenerateTemplate>
+              <retryCount>0</retryCount>
+              <rotate>false</rotate>
+              <includeFilterTransformer>false</includeFilterTransformer>
+              <threadCount>1</threadCount>
+              <threadAssignmentVariable></threadAssignmentVariable>
+              <validateResponse>false</validateResponse>
+              <resourceIds class="linked-hash-map">
+                <entry>
+                  <string>Default Resource</string>
+                  <string>[Default Resource]</string>
+                </entry>
+              </resourceIds>
+              <queueBufferSize>1000</queueBufferSize>
+              <reattachAttachments>true</reattachAttachments>
+            </destinationConnectorProperties>
+            <host>http://192.168.0.1/command.cgi?op=100&amp;DIR=%2FDCIM%2F100OLCV1</host>
+            <useProxyServer>false</useProxyServer>
+            <proxyAddress></proxyAddress>
+            <proxyPort></proxyPort>
+            <method>get</method>
+            <headers class="linked-hash-map"/>
+            <parameters class="linked-hash-map"/>
+            <responseXmlBody>false</responseXmlBody>
+            <responseParseMultipart>true</responseParseMultipart>
+            <responseIncludeMetadata>false</responseIncludeMetadata>
+            <responseBinaryMimeTypes>application/.*(?&lt;!json|xml)$|image/.*|video/.*|audio/.*</responseBinaryMimeTypes>
+            <responseBinaryMimeTypesRegex>true</responseBinaryMimeTypesRegex>
+            <multipart>false</multipart>
+            <useAuthentication>false</useAuthentication>
+            <authenticationType>Basic</authenticationType>
+            <usePreemptiveAuthentication>false</usePreemptiveAuthentication>
+            <username></username>
+            <password></password>
+            <content>${message.rawData}</content>
+            <contentType>text/plain</contentType>
+            <dataTypeBinary>false</dataTypeBinary>
+            <charset>UTF-8</charset>
+            <socketTimeout>30000</socketTimeout>
+          </properties>
+          <transformer version="3.5.1">
+            <elements>
+              <com.mirth.connect.plugins.javascriptstep.JavaScriptStep>
+                <sequenceNumber>0</sequenceNumber>
+                <script></script>
+              </com.mirth.connect.plugins.javascriptstep.JavaScriptStep>
+            </elements>
+            <inboundTemplate encoding="base64"></inboundTemplate>
+            <outboundTemplate encoding="base64"></outboundTemplate>
+            <inboundDataType>RAW</inboundDataType>
+            <outboundDataType>RAW</outboundDataType>
+            <inboundProperties class="com.mirth.connect.plugins.datatypes.raw.RawDataTypeProperties" version="3.5.1">
+              <batchProperties class="com.mirth.connect.plugins.datatypes.raw.RawBatchProperties" version="3.5.1">
+                <splitType>JavaScript</splitType>
+                <batchScript></batchScript>
+              </batchProperties>
+            </inboundProperties>
+            <outboundProperties class="com.mirth.connect.plugins.datatypes.raw.RawDataTypeProperties" version="3.5.1">
+              <batchProperties class="com.mirth.connect.plugins.datatypes.raw.RawBatchProperties" version="3.5.1">
+                <splitType>JavaScript</splitType>
+                <batchScript></batchScript>
+              </batchProperties>
+            </outboundProperties>
+          </transformer>
+          <responseTransformer version="3.5.1">
+            <elements/>
+            <inboundDataType>RAW</inboundDataType>
+            <outboundDataType>RAW</outboundDataType>
+            <inboundProperties class="com.mirth.connect.plugins.datatypes.raw.RawDataTypeProperties" version="3.5.1">
+              <batchProperties class="com.mirth.connect.plugins.datatypes.raw.RawBatchProperties" version="3.5.1">
+                <splitType>JavaScript</splitType>
+                <batchScript></batchScript>
+              </batchProperties>
+            </inboundProperties>
+            <outboundProperties class="com.mirth.connect.plugins.datatypes.raw.RawDataTypeProperties" version="3.5.1">
+              <batchProperties class="com.mirth.connect.plugins.datatypes.raw.RawBatchProperties" version="3.5.1">
+                <splitType>JavaScript</splitType>
+                <batchScript></batchScript>
+              </batchProperties>
+            </outboundProperties>
+          </responseTransformer>
+          <filter version="3.5.1">
+            <elements/>
+          </filter>
+          <transportName>HTTP Sender</transportName>
+          <mode>DESTINATION</mode>
+          <enabled>false</enabled>
+          <waitForPrevious>true</waitForPrevious>
+        </connector>
+        <connector version="3.5.1">
+          <metaDataId>4</metaDataId>
+          <name>Create Dicom Config</name>
+          <properties class="com.mirth.connect.connectors.file.FileDispatcherProperties" version="3.5.1">
+            <pluginProperties/>
+            <destinationConnectorProperties version="3.5.1">
+              <queueEnabled>false</queueEnabled>
+              <sendFirst>false</sendFirst>
+              <retryIntervalMillis>10000</retryIntervalMillis>
+              <regenerateTemplate>false</regenerateTemplate>
+              <retryCount>0</retryCount>
+              <rotate>false</rotate>
+              <includeFilterTransformer>false</includeFilterTransformer>
+              <threadCount>1</threadCount>
+              <threadAssignmentVariable></threadAssignmentVariable>
+              <validateResponse>false</validateResponse>
+              <resourceIds class="linked-hash-map">
+                <entry>
+                  <string>Default Resource</string>
+                  <string>[Default Resource]</string>
+                </entry>
+              </resourceIds>
+              <queueBufferSize>1000</queueBufferSize>
+              <reattachAttachments>true</reattachAttachments>
+            </destinationConnectorProperties>
+            <scheme>FILE</scheme>
+            <host>/tmp/dicom/config</host>
+            <outputPattern>${dicomConfigFile}.cfg</outputPattern>
+            <anonymous>true</anonymous>
+            <username>anonymous</username>
+            <password>anonymous</password>
+            <timeout>10000</timeout>
+            <secure>true</secure>
+            <passive>true</passive>
+            <validateConnection>true</validateConnection>
+            <outputAppend>false</outputAppend>
+            <errorOnExists>false</errorOnExists>
+            <temporary>false</temporary>
+            <binary>false</binary>
+            <charsetEncoding>DEFAULT_ENCODING</charsetEncoding>
+            <template># Patient&apos;s Name
+00100010:${PatientName}
+# Patient ID
+00100020:${PatientID}
+# Issuer of Patient ID
+#00100021:81212
+# Patient&apos;s Birth Date
+00100030:${PatientBirthDate}
+# Patient&apos;s Sex
+00100040:${PatientSex}
+
+# General Study Module Attributes
+# Study Instance UID
+#0020000D: 1.2.840.10008.5.1.4.1.1.7
+# Study Date
+00080020:20180518
+# Study Time
+00080030: 
+# Referring Physician&apos;s Name
+00080090:IWANG
+# Study ID
+00200010:1213123
+# Accession Number
+00080050:${AccessionNumber}
+# Study Description
+#00081030:
+
+# General Series Module Attributes
+# Modality
+00080060:ES
+# Series Instance UID
+#0020,000E:
+# Series Number
+00200011:1
+
+# General Equipment Module Attributes
+# Manufacturer
+00080070:
+
+# SC Equipment Module Attributes
+# Conversion Type
+00080064:SI
+
+# General Image Module Attributes
+# Instance Number
+00200013:1
+
+# Image Pixel Module Attributes (detected from JPEG file, if not specified)
+# Samples per Pixel
+#00280002:3
+# Photometric Interpretation
+#00280004:YBR_FULL_422
+# Planar Configuration
+#00280006:0
+# Rows
+#00280010:
+# Columns
+#00280011:
+# Bits Allocated
+#00280100:8
+# Bits Stored
+#00280101:8
+# High Bit
+#00280102:7
+# Pixel Representation
+#00280103:0</template>
+          </properties>
+          <transformer version="3.5.1">
+            <elements>
+              <com.mirth.connect.plugins.javascriptstep.JavaScriptStep>
+                <sequenceNumber>0</sequenceNumber>
+                <script>var dicomConfigFile = &apos;FALSE&apos;;
+var dicomAttributesData = &apos;&apos;;
+
+if(sourceMap.get(&apos;method&apos;)==&apos;PUT&apos;){
+var msg = JSON.parse(connectorMessage.getRawData());
+	var queryParameters = [];
+	var query = &apos;SELECT o.patient_id, o.patient_name, o.patient_dob, o.device_code, o.his_order_id, o.patient_gender &apos;;
+	query += &apos;FROM orders o &apos;;
+	query += &apos;WHERE o.his_order_id=&quot;&apos;+msg.his_order_id+&apos;&quot;&apos;;
+	var result = $(&apos;functExecuteQuery&apos;)(query,queryParameters);
+
+	var countResult = result.size();
+	var count = 1;
+	var device = &apos;&apos;;
+	while (result.next()){
+		var dob = result.getString(3).split(&apos;-&apos;);
+		var patientName = result.getString(2);
+		channelMap.put(&apos;PatientName&apos;, patientName);
+		channelMap.put(&apos;PatientID&apos;, result.getString(1));
+		channelMap.put(&apos;PatientBirthDate&apos;, dob[0]+dob[1]+dob[2]);
+		channelMap.put(&apos;PatientSex&apos;,result.getString(6));
+		channelMap.put(&apos;AccessionNumber&apos;, result.getString(5));
+		dicomConfigFile = result.getString(1) + &apos;_&apos; + result.getString(5);	
+		};
+}
+
+globalChannelMap.put(&apos;dicomConfigFile&apos;, dicomConfigFile);</script>
+              </com.mirth.connect.plugins.javascriptstep.JavaScriptStep>
+            </elements>
+            <inboundTemplate encoding="base64"></inboundTemplate>
+            <outboundTemplate encoding="base64"></outboundTemplate>
+            <inboundDataType>RAW</inboundDataType>
+            <outboundDataType>RAW</outboundDataType>
+            <inboundProperties class="com.mirth.connect.plugins.datatypes.raw.RawDataTypeProperties" version="3.5.1">
+              <batchProperties class="com.mirth.connect.plugins.datatypes.raw.RawBatchProperties" version="3.5.1">
+                <splitType>JavaScript</splitType>
+                <batchScript></batchScript>
+              </batchProperties>
+            </inboundProperties>
+            <outboundProperties class="com.mirth.connect.plugins.datatypes.raw.RawDataTypeProperties" version="3.5.1">
+              <batchProperties class="com.mirth.connect.plugins.datatypes.raw.RawBatchProperties" version="3.5.1">
+                <splitType>JavaScript</splitType>
+                <batchScript></batchScript>
+              </batchProperties>
+            </outboundProperties>
+          </transformer>
+          <responseTransformer version="3.5.1">
+            <elements/>
+            <inboundDataType>RAW</inboundDataType>
+            <outboundDataType>RAW</outboundDataType>
+            <inboundProperties class="com.mirth.connect.plugins.datatypes.raw.RawDataTypeProperties" version="3.5.1">
+              <batchProperties class="com.mirth.connect.plugins.datatypes.raw.RawBatchProperties" version="3.5.1">
+                <splitType>JavaScript</splitType>
+                <batchScript></batchScript>
+              </batchProperties>
+            </inboundProperties>
+            <outboundProperties class="com.mirth.connect.plugins.datatypes.raw.RawDataTypeProperties" version="3.5.1">
+              <batchProperties class="com.mirth.connect.plugins.datatypes.raw.RawBatchProperties" version="3.5.1">
+                <splitType>JavaScript</splitType>
+                <batchScript></batchScript>
+              </batchProperties>
+            </outboundProperties>
+          </responseTransformer>
+          <filter version="3.5.1">
+            <elements/>
+          </filter>
+          <transportName>File Writer</transportName>
+          <mode>DESTINATION</mode>
+          <enabled>true</enabled>
+          <waitForPrevious>true</waitForPrevious>
+        </connector>
+        <connector version="3.5.1">
+          <metaDataId>3</metaDataId>
+          <name>Process Listing  Save File and Convert To Dicom</name>
+          <properties class="com.mirth.connect.connectors.js.JavaScriptDispatcherProperties" version="3.5.1">
+            <pluginProperties/>
+            <destinationConnectorProperties version="3.5.1">
+              <queueEnabled>false</queueEnabled>
+              <sendFirst>false</sendFirst>
+              <retryIntervalMillis>10000</retryIntervalMillis>
+              <regenerateTemplate>false</regenerateTemplate>
+              <retryCount>0</retryCount>
+              <rotate>false</rotate>
+              <includeFilterTransformer>false</includeFilterTransformer>
+              <threadCount>1</threadCount>
+              <threadAssignmentVariable></threadAssignmentVariable>
+              <validateResponse>false</validateResponse>
+              <resourceIds class="linked-hash-map">
+                <entry>
+                  <string>Default Resource</string>
+                  <string>[Default Resource]</string>
+                </entry>
+              </resourceIds>
+              <queueBufferSize>1000</queueBufferSize>
+              <reattachAttachments>true</reattachAttachments>
+            </destinationConnectorProperties>
+            <script>
+if(sourceMap.get(&apos;method&apos;)==&apos;PUT&apos;){
+var msg = JSON.parse(connectorMessage.getRawData());
+
+//var getRawResponse = $(&apos;d1&apos;).getMessage().toString();
+var getRawResponse = $(&apos;d7&apos;).getMessage().toString();
+logger.info(getRawResponse);
+var cleanList = getRawResponse.replace(&apos;WLANSD_FILELIST&apos;,&apos;&apos;);
+var array = cleanList.split(&apos;/DCIM/&apos;);
+
+for(var i = 0; i&lt;array.length; i++){
+	var path = array[i].trim().split(&apos;,&apos;);
+	if(path[0] != &quot;&quot;){
+		var imagePath = &apos;/DCIM/&apos; + path[0] + &apos;/&apos;+ path[1];
+		var imageName = path[1].replace(&apos;.jpg&apos;,&quot;&quot;);
+		var jpg2dcmCLI = &quot;/tmp/dcm4che-tk-2/bin/jpg2dcm &quot;;
+		jpg2dcmCLI += &quot; -c /tmp/FlashAir/&quot;+ path[1];
+		jpg2dcmCLI += &quot; /tmp/dicom_image/&quot;+ imageName +&quot;.dcm&quot;;
+		java.lang.Runtime.getRuntime().exec(&quot;curl http://192.168.0.1&quot; + imagePath + &quot; -o /tmp/FlashAir/&quot;+path[1]);
+		java.lang.Runtime.getRuntime().exec(jpg2dcmCLI);
+	}
+}
+
+	var order_info = {
+		his_order_id: msg.his_order_id,
+		device_code: msg.device_code
+	}
+	var responseData;
+	var meta = &apos;{&quot;lastUpdated&quot;:&quot;&apos;+ new Date().toISOString()+&apos;&quot;}&apos;;
+		responseData = &apos;{&quot;resourceType&quot;:&quot;bundle&quot;,&apos;;
+		responseData += &apos;&quot;meta&quot;:&apos; + meta + &apos;, &apos;;
+		responseData += &apos;&quot;type&quot;:&quot;searchset&quot;, &apos;;
+		responseData += &apos;&quot;total&quot;:1, &apos;;
+		responseData += &apos;&quot;link&quot;:&quot;&quot;, &apos;;
+		responseData += &apos;&quot;entry&quot;: &apos;+ JSON.stringify(order_info) +&apos;&apos;;
+		responseData += &apos;}&apos;;
+	$(&apos;functFinalResponse&apos;)(responseData);
+}
+
+//java.lang.Runtime.getRuntime().exec(&quot;wget /tmp/FlashAir/ http://192.168.0.1/DCIM/100OLCV1/100H0003.jpg&quot;);
+//java.lang.Runtime.getRuntime().exec(&quot;curl http://192.168.0.1/DCIM/100OLCV1/100H0003.jpg -o /tmp/FlashAir/100H0003_.jpg&quot;);
+//java.lang.Runtime.getRuntime().exec(&quot;touch /tmp/FlashAir/test.txt&quot;);
+</script>
+          </properties>
+          <transformer version="3.5.1">
+            <elements/>
+            <inboundTemplate encoding="base64"></inboundTemplate>
+            <outboundTemplate encoding="base64"></outboundTemplate>
+            <inboundDataType>RAW</inboundDataType>
+            <outboundDataType>JSON</outboundDataType>
+            <inboundProperties class="com.mirth.connect.plugins.datatypes.raw.RawDataTypeProperties" version="3.5.1">
+              <batchProperties class="com.mirth.connect.plugins.datatypes.raw.RawBatchProperties" version="3.5.1">
+                <splitType>JavaScript</splitType>
+                <batchScript></batchScript>
+              </batchProperties>
+            </inboundProperties>
+            <outboundProperties class="com.mirth.connect.plugins.datatypes.json.JSONDataTypeProperties" version="3.5.1">
+              <batchProperties class="com.mirth.connect.plugins.datatypes.json.JSONBatchProperties" version="3.5.1">
+                <splitType>JavaScript</splitType>
+                <batchScript></batchScript>
+              </batchProperties>
+            </outboundProperties>
+          </transformer>
+          <responseTransformer version="3.5.1">
+            <elements/>
+            <inboundDataType>RAW</inboundDataType>
+            <outboundDataType>RAW</outboundDataType>
+            <inboundProperties class="com.mirth.connect.plugins.datatypes.raw.RawDataTypeProperties" version="3.5.1">
+              <batchProperties class="com.mirth.connect.plugins.datatypes.raw.RawBatchProperties" version="3.5.1">
+                <splitType>JavaScript</splitType>
+                <batchScript></batchScript>
+              </batchProperties>
+            </inboundProperties>
+            <outboundProperties class="com.mirth.connect.plugins.datatypes.raw.RawDataTypeProperties" version="3.5.1">
+              <batchProperties class="com.mirth.connect.plugins.datatypes.raw.RawBatchProperties" version="3.5.1">
+                <splitType>JavaScript</splitType>
+                <batchScript></batchScript>
+              </batchProperties>
+            </outboundProperties>
+          </responseTransformer>
+          <filter version="3.5.1">
+            <elements/>
+          </filter>
+          <transportName>JavaScript Writer</transportName>
+          <mode>DESTINATION</mode>
+          <enabled>true</enabled>
+          <waitForPrevious>true</waitForPrevious>
+        </connector>
+      </destinationConnectors>
+      <preprocessingScript>// Modify the message variable below to pre process data
+return message;</preprocessingScript>
+      <postprocessingScript>// This script executes once after a message has been processed
+// Responses returned from here will be stored as &quot;Postprocessor&quot; in the response map
+
+var getResponseContent = channelMap.get(&apos;responseContent&apos;);
+if(getResponseContent!=null){
+	return channelMap.get(&apos;responseContent&apos;).toString();	
+}</postprocessingScript>
+      <deployScript>// This script executes once when the channel is deployed
+// You only have access to the globalMap and globalChannelMap here to persist data
+return;</deployScript>
+      <undeployScript>// This script executes once when the channel is undeployed
+// You only have access to the globalMap and globalChannelMap here to persist data
+return;</undeployScript>
+      <properties version="3.5.1">
+        <clearGlobalChannelMap>true</clearGlobalChannelMap>
+        <messageStorageMode>DEVELOPMENT</messageStorageMode>
+        <encryptData>true</encryptData>
+        <removeContentOnCompletion>false</removeContentOnCompletion>
+        <removeOnlyFilteredOnCompletion>false</removeOnlyFilteredOnCompletion>
+        <removeAttachmentsOnCompletion>false</removeAttachmentsOnCompletion>
+        <initialState>STARTED</initialState>
+        <storeAttachments>false</storeAttachments>
+        <metaDataColumns>
+          <metaDataColumn>
+            <name>SOURCE</name>
+            <type>STRING</type>
+            <mappingName>mirth_source</mappingName>
+          </metaDataColumn>
+          <metaDataColumn>
+            <name>TYPE</name>
+            <type>STRING</type>
+            <mappingName>mirth_type</mappingName>
+          </metaDataColumn>
+        </metaDataColumns>
+        <attachmentProperties version="3.5.1">
+          <type>None</type>
+          <properties/>
+        </attachmentProperties>
+        <resourceIds class="linked-hash-map">
+          <entry>
+            <string>Default Resource</string>
+            <string>[Default Resource]</string>
+          </entry>
+        </resourceIds>
+      </properties>
+      <exportData>
+        <metadata>
+          <enabled>true</enabled>
+          <lastModified>
+            <time>1526977460076</time>
+            <timezone>Asia/Kuala_Lumpur</timezone>
+          </lastModified>
+          <pruningSettings>
+            <archiveEnabled>true</archiveEnabled>
+          </pruningSettings>
+        </metadata>
+      </exportData>
+    </channel>
+    <channel version="3.5.1">
+      <id>c56b7c07-a482-4b12-9334-76a2e43daa5c</id>
+      <nextMetaDataId>14</nextMetaDataId>
+      <name>Flash Air RPI</name>
+      <description></description>
+      <revision>34</revision>
+      <sourceConnector version="3.5.1">
+        <metaDataId>0</metaDataId>
+        <name>sourceConnector</name>
+        <properties class="com.mirth.connect.connectors.http.HttpReceiverProperties" version="3.5.1">
+          <pluginProperties>
+            <com.mirth.connect.plugins.httpauth.NoneHttpAuthProperties version="3.5.1">
+  <authType>NONE</authType>
+            </com.mirth.connect.plugins.httpauth.NoneHttpAuthProperties>
+          </pluginProperties>
+          <listenerConnectorProperties version="3.5.1">
+            <host>0.0.0.0</host>
+            <port>8056</port>
+          </listenerConnectorProperties>
+          <sourceConnectorProperties version="3.5.1">
+            <responseVariable>Postprocessor</responseVariable>
+            <respondAfterProcessing>true</respondAfterProcessing>
+            <processBatch>false</processBatch>
+            <firstResponse>false</firstResponse>
+            <processingThreads>1</processingThreads>
+            <resourceIds class="linked-hash-map">
+              <entry>
+                <string>Default Resource</string>
+                <string>[Default Resource]</string>
+              </entry>
+            </resourceIds>
+            <queueBufferSize>1000</queueBufferSize>
+          </sourceConnectorProperties>
+          <xmlBody>false</xmlBody>
+          <parseMultipart>true</parseMultipart>
+          <includeMetadata>false</includeMetadata>
+          <binaryMimeTypes>application/.*(?&lt;!json|xml)$|image/.*|video/.*|audio/.*</binaryMimeTypes>
+          <binaryMimeTypesRegex>true</binaryMimeTypesRegex>
+          <responseContentType>application/json</responseContentType>
+          <responseDataTypeBinary>false</responseDataTypeBinary>
+          <responseStatusCode></responseStatusCode>
+          <responseHeaders class="linked-hash-map">
+            <entry>
+              <string>Access-Control-Allow-Origin</string>
+              <list>
+                <string>*</string>
+              </list>
+            </entry>
+            <entry>
+              <string>Access-Control-Allow-Methods</string>
+              <list>
+                <string>*</string>
+              </list>
+            </entry>
+            <entry>
+              <string>Access-Control-Allow-Headers</string>
+              <list>
+                <string>*</string>
+              </list>
+            </entry>
+            <entry>
+              <string>Content-Type</string>
+              <list>
+                <string>*</string>
+              </list>
+            </entry>
+          </responseHeaders>
+          <charset>UTF-8</charset>
+          <contextPath>flashair</contextPath>
+          <timeout>0</timeout>
+          <staticResources/>
+        </properties>
+        <transformer version="3.5.1">
+          <elements>
+            <com.mirth.connect.plugins.javascriptstep.JavaScriptStep>
+              <name>Global Functions</name>
+              <sequenceNumber>0</sequenceNumber>
+              <script>globalMap.put(&apos;rpi_host&apos;,&apos;http://172.19.64.65&apos;);
+
+function executeQuery(query,queryParameters){
+	var gateway_database = globalChannelMap.get(&apos;gateway_database&apos;);
+	var user = globalChannelMap.get(&apos;gateway_database_user&apos;);
+	var pass = globalChannelMap.get(&apos;gateway_database_pass&apos;);
+	var dbConn;
+	try {
+		dbConn = DatabaseConnectionFactory.createDatabaseConnection(&apos;com.mysql.jdbc.Driver&apos;,&apos;jdbc:mysql://&apos;+gateway_database,user,pass);
+		var result = dbConn.executeCachedQuery(query,queryParameters);
+		return result;
+	} finally {
+		if (dbConn) { 
+			dbConn.close();
+		}
+	}
+}
+
+function executeInsertQuery(query,queryParameters){
+	var dbConn;
+	try {
+		dbConn = DatabaseConnectionFactory.createDatabaseConnection(&apos;com.mysql.jdbc.Driver&apos;,&apos;jdbc:mysql://localhost:3306/integdb&apos;,&apos;root&apos;,&apos;re^mp123&apos;);
+		var result = dbConn.executeUpdate(query,queryParameters);
+		return result;
+	} finally {
+		if (dbConn) { 
+			dbConn.close();
+		}
+	}
+}
+
+function finalResponse(jsonString){
+	channelMap.put(&apos;responseContent&apos;, jsonString);
+	channelMap.put(&apos;responseContentType&apos;, &apos;application/fhir+json&apos;);
+}
+
+function parameterTest(bool){
+	if(bool!==null){
+		return true;
+	} else {
+		return false;
+	}
+}
+
+
+globalMap.put(&apos;functExecuteQuery&apos;, validate(executeQuery, &apos;&apos;, new Array()));
+globalMap.put(&apos;functExecuteInsertQuery&apos;, validate(executeInsertQuery, &apos;&apos;, new Array()));
+globalMap.put(&apos;functFinalResponse&apos;, validate(finalResponse, &apos;&apos;, new Array()));
+globalMap.put(&apos;functParameterTest&apos;,  validate(parameterTest, &apos;&apos;, new Array()));</script>
+            </com.mirth.connect.plugins.javascriptstep.JavaScriptStep>
+          </elements>
+          <inboundTemplate encoding="base64"></inboundTemplate>
+          <outboundTemplate encoding="base64"></outboundTemplate>
+          <inboundDataType>RAW</inboundDataType>
+          <outboundDataType>RAW</outboundDataType>
+          <inboundProperties class="com.mirth.connect.plugins.datatypes.raw.RawDataTypeProperties" version="3.5.1">
+            <batchProperties class="com.mirth.connect.plugins.datatypes.raw.RawBatchProperties" version="3.5.1">
+              <splitType>JavaScript</splitType>
+              <batchScript></batchScript>
+            </batchProperties>
+          </inboundProperties>
+          <outboundProperties class="com.mirth.connect.plugins.datatypes.raw.RawDataTypeProperties" version="3.5.1">
+            <batchProperties class="com.mirth.connect.plugins.datatypes.raw.RawBatchProperties" version="3.5.1">
+              <splitType>JavaScript</splitType>
+              <batchScript></batchScript>
+            </batchProperties>
+          </outboundProperties>
+        </transformer>
+        <filter version="3.5.1">
+          <elements/>
+        </filter>
+        <transportName>HTTP Listener</transportName>
+        <mode>SOURCE</mode>
+        <enabled>true</enabled>
+        <waitForPrevious>true</waitForPrevious>
+      </sourceConnector>
+      <destinationConnectors>
+        <connector version="3.5.1">
+          <metaDataId>7</metaDataId>
+          <name>Generate Image On RPI</name>
+          <properties class="com.mirth.connect.connectors.http.HttpDispatcherProperties" version="3.5.1">
+            <pluginProperties/>
+            <destinationConnectorProperties version="3.5.1">
+              <queueEnabled>false</queueEnabled>
+              <sendFirst>false</sendFirst>
+              <retryIntervalMillis>10000</retryIntervalMillis>
+              <regenerateTemplate>false</regenerateTemplate>
+              <retryCount>0</retryCount>
+              <rotate>false</rotate>
+              <includeFilterTransformer>false</includeFilterTransformer>
+              <threadCount>1</threadCount>
+              <threadAssignmentVariable></threadAssignmentVariable>
+              <validateResponse>false</validateResponse>
+              <resourceIds class="linked-hash-map">
+                <entry>
+                  <string>Default Resource</string>
+                  <string>[Default Resource]</string>
+                </entry>
+              </resourceIds>
+              <queueBufferSize>1000</queueBufferSize>
+              <reattachAttachments>true</reattachAttachments>
+            </destinationConnectorProperties>
+            <host>${rpi_host}/generateImage.php</host>
+            <useProxyServer>false</useProxyServer>
+            <proxyAddress></proxyAddress>
+            <proxyPort></proxyPort>
+            <method>get</method>
+            <headers class="linked-hash-map"/>
+            <parameters class="linked-hash-map"/>
+            <responseXmlBody>false</responseXmlBody>
+            <responseParseMultipart>true</responseParseMultipart>
+            <responseIncludeMetadata>false</responseIncludeMetadata>
+            <responseBinaryMimeTypes>application/.*(?&lt;!json|xml)$|image/.*|video/.*|audio/.*</responseBinaryMimeTypes>
+            <responseBinaryMimeTypesRegex>true</responseBinaryMimeTypesRegex>
+            <multipart>false</multipart>
+            <useAuthentication>false</useAuthentication>
+            <authenticationType>Basic</authenticationType>
+            <usePreemptiveAuthentication>false</usePreemptiveAuthentication>
+            <username></username>
+            <password></password>
+            <content>${message.rawData}</content>
+            <contentType>text/plain</contentType>
+            <dataTypeBinary>false</dataTypeBinary>
+            <charset>UTF-8</charset>
+            <socketTimeout>30000</socketTimeout>
+          </properties>
+          <transformer version="3.5.1">
+            <elements>
+              <com.mirth.connect.plugins.javascriptstep.JavaScriptStep>
+                <sequenceNumber>0</sequenceNumber>
+                <script></script>
+              </com.mirth.connect.plugins.javascriptstep.JavaScriptStep>
+            </elements>
+            <inboundTemplate encoding="base64"></inboundTemplate>
+            <outboundTemplate encoding="base64"></outboundTemplate>
+            <inboundDataType>RAW</inboundDataType>
+            <outboundDataType>RAW</outboundDataType>
+            <inboundProperties class="com.mirth.connect.plugins.datatypes.raw.RawDataTypeProperties" version="3.5.1">
+              <batchProperties class="com.mirth.connect.plugins.datatypes.raw.RawBatchProperties" version="3.5.1">
+                <splitType>JavaScript</splitType>
+                <batchScript></batchScript>
+              </batchProperties>
+            </inboundProperties>
+            <outboundProperties class="com.mirth.connect.plugins.datatypes.raw.RawDataTypeProperties" version="3.5.1">
+              <batchProperties class="com.mirth.connect.plugins.datatypes.raw.RawBatchProperties" version="3.5.1">
+                <splitType>JavaScript</splitType>
+                <batchScript></batchScript>
+              </batchProperties>
+            </outboundProperties>
+          </transformer>
+          <responseTransformer version="3.5.1">
+            <elements/>
+            <inboundDataType>RAW</inboundDataType>
+            <outboundDataType>RAW</outboundDataType>
+            <inboundProperties class="com.mirth.connect.plugins.datatypes.raw.RawDataTypeProperties" version="3.5.1">
+              <batchProperties class="com.mirth.connect.plugins.datatypes.raw.RawBatchProperties" version="3.5.1">
+                <splitType>JavaScript</splitType>
+                <batchScript></batchScript>
+              </batchProperties>
+            </inboundProperties>
+            <outboundProperties class="com.mirth.connect.plugins.datatypes.raw.RawDataTypeProperties" version="3.5.1">
+              <batchProperties class="com.mirth.connect.plugins.datatypes.raw.RawBatchProperties" version="3.5.1">
+                <splitType>JavaScript</splitType>
+                <batchScript></batchScript>
+              </batchProperties>
+            </outboundProperties>
+          </responseTransformer>
+          <filter version="3.5.1">
+            <elements/>
+          </filter>
+          <transportName>HTTP Sender</transportName>
+          <mode>DESTINATION</mode>
+          <enabled>true</enabled>
+          <waitForPrevious>true</waitForPrevious>
+        </connector>
+        <connector version="3.5.1">
+          <metaDataId>3</metaDataId>
+          <name>Transfer Image To Server</name>
+          <properties class="com.mirth.connect.connectors.js.JavaScriptDispatcherProperties" version="3.5.1">
+            <pluginProperties/>
+            <destinationConnectorProperties version="3.5.1">
+              <queueEnabled>false</queueEnabled>
+              <sendFirst>false</sendFirst>
+              <retryIntervalMillis>10000</retryIntervalMillis>
+              <regenerateTemplate>false</regenerateTemplate>
+              <retryCount>0</retryCount>
+              <rotate>false</rotate>
+              <includeFilterTransformer>false</includeFilterTransformer>
+              <threadCount>1</threadCount>
+              <threadAssignmentVariable></threadAssignmentVariable>
+              <validateResponse>false</validateResponse>
+              <resourceIds class="linked-hash-map">
+                <entry>
+                  <string>Default Resource</string>
+                  <string>[Default Resource]</string>
+                </entry>
+              </resourceIds>
+              <queueBufferSize>1000</queueBufferSize>
+              <reattachAttachments>true</reattachAttachments>
+            </destinationConnectorProperties>
+            <script>
+if(sourceMap.get(&apos;method&apos;)==&apos;PUT&apos;){
+
+var getRawResponse = $(&apos;d7&apos;).getMessage().toString();
+var images = getRawResponse.split(&apos;,&apos;);
+
+for(var i = 0; i&lt;images.length; i++){
+	if(images[i] != &quot;&quot;){
+		var imageName = images[i];
+		var copyFileToServer = &quot;curl &quot;+ $(&apos;rpi_host&apos;) +&quot;/images/&quot; + images[i] + &quot; -o /tmp/flashair/&quot; + images[i];
+		var runCLI = java.lang.Runtime.getRuntime().exec(copyFileToServer);
+		runCLI.waitFor();
+	}
+}
+}
+</script>
+          </properties>
+          <transformer version="3.5.1">
+            <elements/>
+            <inboundTemplate encoding="base64"></inboundTemplate>
+            <outboundTemplate encoding="base64"></outboundTemplate>
+            <inboundDataType>RAW</inboundDataType>
+            <outboundDataType>JSON</outboundDataType>
+            <inboundProperties class="com.mirth.connect.plugins.datatypes.raw.RawDataTypeProperties" version="3.5.1">
+              <batchProperties class="com.mirth.connect.plugins.datatypes.raw.RawBatchProperties" version="3.5.1">
+                <splitType>JavaScript</splitType>
+                <batchScript></batchScript>
+              </batchProperties>
+            </inboundProperties>
+            <outboundProperties class="com.mirth.connect.plugins.datatypes.json.JSONDataTypeProperties" version="3.5.1">
+              <batchProperties class="com.mirth.connect.plugins.datatypes.json.JSONBatchProperties" version="3.5.1">
+                <splitType>JavaScript</splitType>
+                <batchScript></batchScript>
+              </batchProperties>
+            </outboundProperties>
+          </transformer>
+          <responseTransformer version="3.5.1">
+            <elements/>
+            <inboundDataType>RAW</inboundDataType>
+            <outboundDataType>RAW</outboundDataType>
+            <inboundProperties class="com.mirth.connect.plugins.datatypes.raw.RawDataTypeProperties" version="3.5.1">
+              <batchProperties class="com.mirth.connect.plugins.datatypes.raw.RawBatchProperties" version="3.5.1">
+                <splitType>JavaScript</splitType>
+                <batchScript></batchScript>
+              </batchProperties>
+            </inboundProperties>
+            <outboundProperties class="com.mirth.connect.plugins.datatypes.raw.RawDataTypeProperties" version="3.5.1">
+              <batchProperties class="com.mirth.connect.plugins.datatypes.raw.RawBatchProperties" version="3.5.1">
+                <splitType>JavaScript</splitType>
+                <batchScript></batchScript>
+              </batchProperties>
+            </outboundProperties>
+          </responseTransformer>
+          <filter version="3.5.1">
+            <elements/>
+          </filter>
+          <transportName>JavaScript Writer</transportName>
+          <mode>DESTINATION</mode>
+          <enabled>true</enabled>
+          <waitForPrevious>true</waitForPrevious>
+        </connector>
+        <connector version="3.5.1">
+          <metaDataId>4</metaDataId>
+          <name>Create Dicom Config</name>
+          <properties class="com.mirth.connect.connectors.file.FileDispatcherProperties" version="3.5.1">
+            <pluginProperties/>
+            <destinationConnectorProperties version="3.5.1">
+              <queueEnabled>false</queueEnabled>
+              <sendFirst>false</sendFirst>
+              <retryIntervalMillis>10000</retryIntervalMillis>
+              <regenerateTemplate>false</regenerateTemplate>
+              <retryCount>0</retryCount>
+              <rotate>false</rotate>
+              <includeFilterTransformer>false</includeFilterTransformer>
+              <threadCount>1</threadCount>
+              <threadAssignmentVariable></threadAssignmentVariable>
+              <validateResponse>false</validateResponse>
+              <resourceIds class="linked-hash-map">
+                <entry>
+                  <string>Default Resource</string>
+                  <string>[Default Resource]</string>
+                </entry>
+              </resourceIds>
+              <queueBufferSize>1000</queueBufferSize>
+              <reattachAttachments>true</reattachAttachments>
+            </destinationConnectorProperties>
+            <scheme>FILE</scheme>
+            <host>/tmp/dicom/config</host>
+            <outputPattern>${dicomConfigFile}.cfg</outputPattern>
+            <anonymous>true</anonymous>
+            <username>anonymous</username>
+            <password>anonymous</password>
+            <timeout>10000</timeout>
+            <secure>true</secure>
+            <passive>true</passive>
+            <validateConnection>true</validateConnection>
+            <outputAppend>false</outputAppend>
+            <errorOnExists>false</errorOnExists>
+            <temporary>false</temporary>
+            <binary>false</binary>
+            <charsetEncoding>DEFAULT_ENCODING</charsetEncoding>
+            <template># Patient&apos;s Name
+00100010:${PatientName}
+# Patient ID
+00100020:${PatientID}
+# Issuer of Patient ID
+#00100021:81212
+# Patient&apos;s Birth Date
+00100030:${PatientBirthDate}
+# Patient&apos;s Sex
+00100040:${PatientSex}
+
+# General Study Module Attributes
+# Study Instance UID
+#0020000D: 1.2.840.10008.5.1.4.1.1.7
+# Study Date
+00080020:20180518
+# Study Time
+00080030: 
+# Referring Physician&apos;s Name
+00080090:IWANG
+# Study ID
+00200010:1213123
+# Accession Number
+00080050:${AccessionNumber}
+# Study Description
+#00081030:
+
+# General Series Module Attributes
+# Modality
+00080060:ES
+# Series Instance UID
+#0020,000E:
+# Series Number
+00200011:1
+
+# General Equipment Module Attributes
+# Manufacturer
+00080070:
+
+# SC Equipment Module Attributes
+# Conversion Type
+00080064:SI
+
+# General Image Module Attributes
+# Instance Number
+00200013:1
+
+# Image Pixel Module Attributes (detected from JPEG file, if not specified)
+# Samples per Pixel
+#00280002:3
+# Photometric Interpretation
+#00280004:YBR_FULL_422
+# Planar Configuration
+#00280006:0
+# Rows
+#00280010:
+# Columns
+#00280011:
+# Bits Allocated
+#00280100:8
+# Bits Stored
+#00280101:8
+# High Bit
+#00280102:7
+# Pixel Representation
+#00280103:0</template>
+          </properties>
+          <transformer version="3.5.1">
+            <elements>
+              <com.mirth.connect.plugins.javascriptstep.JavaScriptStep>
+                <sequenceNumber>0</sequenceNumber>
+                <script>var dicomConfigFile = &apos;FALSE&apos;;
+var dicomAttributesData = &apos;&apos;;
+
+if(sourceMap.get(&apos;method&apos;)==&apos;PUT&apos;){
+var msg = JSON.parse(connectorMessage.getRawData());
+	var queryParameters = [];
+	var query = &apos;SELECT o.patient_id, o.patient_name, o.patient_dob, o.device_code, o.his_order_id, o.patient_gender &apos;;
+	query += &apos;FROM orders o &apos;;
+	query += &apos;WHERE o.his_order_id=&quot;&apos;+msg.his_order_id+&apos;&quot;&apos;;
+	var result = $(&apos;functExecuteQuery&apos;)(query,queryParameters);
+
+	var countResult = result.size();
+	var count = 1;
+	var device = &apos;&apos;;
+	while (result.next()){
+		var dob = result.getString(3).split(&apos;-&apos;);
+		var patientName = result.getString(2);
+		channelMap.put(&apos;PatientName&apos;, patientName.replace(&apos; &apos;,&apos;^&apos;));
+		channelMap.put(&apos;PatientID&apos;, result.getString(1));
+		channelMap.put(&apos;PatientBirthDate&apos;, dob[0]+dob[1]+dob[2]);
+		channelMap.put(&apos;PatientSex&apos;,result.getString(6));
+		channelMap.put(&apos;AccessionNumber&apos;, result.getString(5));
+		dicomConfigFile = result.getString(1) + &apos;_&apos; + result.getString(5);	
+		};
+}
+
+globalChannelMap.put(&apos;dicomConfigFile&apos;, dicomConfigFile);</script>
+              </com.mirth.connect.plugins.javascriptstep.JavaScriptStep>
+            </elements>
+            <inboundTemplate encoding="base64"></inboundTemplate>
+            <outboundTemplate encoding="base64"></outboundTemplate>
+            <inboundDataType>RAW</inboundDataType>
+            <outboundDataType>RAW</outboundDataType>
+            <inboundProperties class="com.mirth.connect.plugins.datatypes.raw.RawDataTypeProperties" version="3.5.1">
+              <batchProperties class="com.mirth.connect.plugins.datatypes.raw.RawBatchProperties" version="3.5.1">
+                <splitType>JavaScript</splitType>
+                <batchScript></batchScript>
+              </batchProperties>
+            </inboundProperties>
+            <outboundProperties class="com.mirth.connect.plugins.datatypes.raw.RawDataTypeProperties" version="3.5.1">
+              <batchProperties class="com.mirth.connect.plugins.datatypes.raw.RawBatchProperties" version="3.5.1">
+                <splitType>JavaScript</splitType>
+                <batchScript></batchScript>
+              </batchProperties>
+            </outboundProperties>
+          </transformer>
+          <responseTransformer version="3.5.1">
+            <elements/>
+            <inboundDataType>RAW</inboundDataType>
+            <outboundDataType>RAW</outboundDataType>
+            <inboundProperties class="com.mirth.connect.plugins.datatypes.raw.RawDataTypeProperties" version="3.5.1">
+              <batchProperties class="com.mirth.connect.plugins.datatypes.raw.RawBatchProperties" version="3.5.1">
+                <splitType>JavaScript</splitType>
+                <batchScript></batchScript>
+              </batchProperties>
+            </inboundProperties>
+            <outboundProperties class="com.mirth.connect.plugins.datatypes.raw.RawDataTypeProperties" version="3.5.1">
+              <batchProperties class="com.mirth.connect.plugins.datatypes.raw.RawBatchProperties" version="3.5.1">
+                <splitType>JavaScript</splitType>
+                <batchScript></batchScript>
+              </batchProperties>
+            </outboundProperties>
+          </responseTransformer>
+          <filter version="3.5.1">
+            <elements/>
+          </filter>
+          <transportName>File Writer</transportName>
+          <mode>DESTINATION</mode>
+          <enabled>false</enabled>
+          <waitForPrevious>true</waitForPrevious>
+        </connector>
+        <connector version="3.5.1">
+          <metaDataId>12</metaDataId>
+          <name>Request Dicom Task</name>
+          <properties class="com.mirth.connect.connectors.vm.VmDispatcherProperties" version="3.5.1">
+            <pluginProperties/>
+            <destinationConnectorProperties version="3.5.1">
+              <queueEnabled>false</queueEnabled>
+              <sendFirst>false</sendFirst>
+              <retryIntervalMillis>10000</retryIntervalMillis>
+              <regenerateTemplate>false</regenerateTemplate>
+              <retryCount>0</retryCount>
+              <rotate>false</rotate>
+              <includeFilterTransformer>false</includeFilterTransformer>
+              <threadCount>1</threadCount>
+              <threadAssignmentVariable></threadAssignmentVariable>
+              <validateResponse>false</validateResponse>
+              <resourceIds class="linked-hash-map">
+                <entry>
+                  <string>Default Resource</string>
+                  <string>[Default Resource]</string>
+                </entry>
+              </resourceIds>
+              <queueBufferSize>1000</queueBufferSize>
+              <reattachAttachments>true</reattachAttachments>
+            </destinationConnectorProperties>
+            <channelId>2a4ea2b5-db70-4164-8443-5161f61986f4</channelId>
+            <channelTemplate>${message.encodedData}</channelTemplate>
+            <mapVariables/>
+          </properties>
+          <transformer version="3.5.1">
+            <elements>
+              <com.mirth.connect.plugins.javascriptstep.JavaScriptStep>
+                <sequenceNumber>0</sequenceNumber>
+                <script>var msg = JSON.parse(connectorMessage.getRawData());
+	var order_info = {
+		his_order_id: msg.his_order_id,
+		device_code: msg.device_code
+	}
+	var responseData;
+	var meta = &apos;{&quot;lastUpdated&quot;:&quot;&apos;+ new Date().toISOString()+&apos;&quot;}&apos;;
+		responseData = &apos;{&quot;resourceType&quot;:&quot;bundle&quot;,&apos;;
+		responseData += &apos;&quot;meta&quot;:&apos; + meta + &apos;, &apos;;
+		responseData += &apos;&quot;type&quot;:&quot;searchset&quot;, &apos;;
+		responseData += &apos;&quot;total&quot;:1, &apos;;
+		responseData += &apos;&quot;link&quot;:&quot;&quot;, &apos;;
+		responseData += &apos;&quot;entry&quot;: &apos;+ JSON.stringify(order_info) +&apos;&apos;;
+		responseData += &apos;}&apos;;
+	$(&apos;functFinalResponse&apos;)(responseData);</script>
+              </com.mirth.connect.plugins.javascriptstep.JavaScriptStep>
+            </elements>
+            <inboundTemplate encoding="base64"></inboundTemplate>
+            <outboundTemplate encoding="base64"></outboundTemplate>
+            <inboundDataType>RAW</inboundDataType>
+            <outboundDataType>RAW</outboundDataType>
+            <inboundProperties class="com.mirth.connect.plugins.datatypes.raw.RawDataTypeProperties" version="3.5.1">
+              <batchProperties class="com.mirth.connect.plugins.datatypes.raw.RawBatchProperties" version="3.5.1">
+                <splitType>JavaScript</splitType>
+                <batchScript></batchScript>
+              </batchProperties>
+            </inboundProperties>
+            <outboundProperties class="com.mirth.connect.plugins.datatypes.raw.RawDataTypeProperties" version="3.5.1">
+              <batchProperties class="com.mirth.connect.plugins.datatypes.raw.RawBatchProperties" version="3.5.1">
+                <splitType>JavaScript</splitType>
+                <batchScript></batchScript>
+              </batchProperties>
+            </outboundProperties>
+          </transformer>
+          <responseTransformer version="3.5.1">
+            <elements/>
+            <inboundDataType>RAW</inboundDataType>
+            <outboundDataType>RAW</outboundDataType>
+            <inboundProperties class="com.mirth.connect.plugins.datatypes.raw.RawDataTypeProperties" version="3.5.1">
+              <batchProperties class="com.mirth.connect.plugins.datatypes.raw.RawBatchProperties" version="3.5.1">
+                <splitType>JavaScript</splitType>
+                <batchScript></batchScript>
+              </batchProperties>
+            </inboundProperties>
+            <outboundProperties class="com.mirth.connect.plugins.datatypes.raw.RawDataTypeProperties" version="3.5.1">
+              <batchProperties class="com.mirth.connect.plugins.datatypes.raw.RawBatchProperties" version="3.5.1">
+                <splitType>JavaScript</splitType>
+                <batchScript></batchScript>
+              </batchProperties>
+            </outboundProperties>
+          </responseTransformer>
+          <filter version="3.5.1">
+            <elements/>
+          </filter>
+          <transportName>Channel Writer</transportName>
+          <mode>DESTINATION</mode>
+          <enabled>true</enabled>
+          <waitForPrevious>true</waitForPrevious>
+        </connector>
+        <connector version="3.5.1">
+          <metaDataId>8</metaDataId>
+          <name>Delete Images On RPI</name>
+          <properties class="com.mirth.connect.connectors.http.HttpDispatcherProperties" version="3.5.1">
+            <pluginProperties/>
+            <destinationConnectorProperties version="3.5.1">
+              <queueEnabled>false</queueEnabled>
+              <sendFirst>false</sendFirst>
+              <retryIntervalMillis>10000</retryIntervalMillis>
+              <regenerateTemplate>false</regenerateTemplate>
+              <retryCount>0</retryCount>
+              <rotate>false</rotate>
+              <includeFilterTransformer>false</includeFilterTransformer>
+              <threadCount>1</threadCount>
+              <threadAssignmentVariable></threadAssignmentVariable>
+              <validateResponse>false</validateResponse>
+              <resourceIds class="linked-hash-map">
+                <entry>
+                  <string>Default Resource</string>
+                  <string>[Default Resource]</string>
+                </entry>
+              </resourceIds>
+              <queueBufferSize>1000</queueBufferSize>
+              <reattachAttachments>true</reattachAttachments>
+            </destinationConnectorProperties>
+            <host>${rpi_host}/deleteImage.php</host>
+            <useProxyServer>false</useProxyServer>
+            <proxyAddress></proxyAddress>
+            <proxyPort></proxyPort>
+            <method>get</method>
+            <headers class="linked-hash-map"/>
+            <parameters class="linked-hash-map"/>
+            <responseXmlBody>false</responseXmlBody>
+            <responseParseMultipart>true</responseParseMultipart>
+            <responseIncludeMetadata>false</responseIncludeMetadata>
+            <responseBinaryMimeTypes>application/.*(?&lt;!json|xml)$|image/.*|video/.*|audio/.*</responseBinaryMimeTypes>
+            <responseBinaryMimeTypesRegex>true</responseBinaryMimeTypesRegex>
+            <multipart>false</multipart>
+            <useAuthentication>false</useAuthentication>
+            <authenticationType>Basic</authenticationType>
+            <usePreemptiveAuthentication>false</usePreemptiveAuthentication>
+            <username></username>
+            <password></password>
+            <content></content>
+            <contentType>text/plain</contentType>
+            <dataTypeBinary>false</dataTypeBinary>
+            <charset>UTF-8</charset>
+            <socketTimeout>30000</socketTimeout>
+          </properties>
+          <transformer version="3.5.1">
+            <elements/>
+            <inboundDataType>RAW</inboundDataType>
+            <outboundDataType>RAW</outboundDataType>
+            <inboundProperties class="com.mirth.connect.plugins.datatypes.raw.RawDataTypeProperties" version="3.5.1">
+              <batchProperties class="com.mirth.connect.plugins.datatypes.raw.RawBatchProperties" version="3.5.1">
+                <splitType>JavaScript</splitType>
+                <batchScript></batchScript>
+              </batchProperties>
+            </inboundProperties>
+            <outboundProperties class="com.mirth.connect.plugins.datatypes.raw.RawDataTypeProperties" version="3.5.1">
+              <batchProperties class="com.mirth.connect.plugins.datatypes.raw.RawBatchProperties" version="3.5.1">
+                <splitType>JavaScript</splitType>
+                <batchScript></batchScript>
+              </batchProperties>
+            </outboundProperties>
+          </transformer>
+          <responseTransformer version="3.5.1">
+            <elements/>
+            <inboundDataType>RAW</inboundDataType>
+            <outboundDataType>RAW</outboundDataType>
+            <inboundProperties class="com.mirth.connect.plugins.datatypes.raw.RawDataTypeProperties" version="3.5.1">
+              <batchProperties class="com.mirth.connect.plugins.datatypes.raw.RawBatchProperties" version="3.5.1">
+                <splitType>JavaScript</splitType>
+                <batchScript></batchScript>
+              </batchProperties>
+            </inboundProperties>
+            <outboundProperties class="com.mirth.connect.plugins.datatypes.raw.RawDataTypeProperties" version="3.5.1">
+              <batchProperties class="com.mirth.connect.plugins.datatypes.raw.RawBatchProperties" version="3.5.1">
+                <splitType>JavaScript</splitType>
+                <batchScript></batchScript>
+              </batchProperties>
+            </outboundProperties>
+          </responseTransformer>
+          <filter version="3.5.1">
+            <elements/>
+          </filter>
+          <transportName>HTTP Sender</transportName>
+          <mode>DESTINATION</mode>
+          <enabled>true</enabled>
+          <waitForPrevious>true</waitForPrevious>
+        </connector>
+        <connector version="3.5.1">
+          <metaDataId>9</metaDataId>
+          <name>Create Dicom File</name>
+          <properties class="com.mirth.connect.connectors.js.JavaScriptDispatcherProperties" version="3.5.1">
+            <pluginProperties/>
+            <destinationConnectorProperties version="3.5.1">
+              <queueEnabled>false</queueEnabled>
+              <sendFirst>false</sendFirst>
+              <retryIntervalMillis>10000</retryIntervalMillis>
+              <regenerateTemplate>false</regenerateTemplate>
+              <retryCount>0</retryCount>
+              <rotate>false</rotate>
+              <includeFilterTransformer>false</includeFilterTransformer>
+              <threadCount>1</threadCount>
+              <threadAssignmentVariable></threadAssignmentVariable>
+              <validateResponse>false</validateResponse>
+              <resourceIds class="linked-hash-map">
+                <entry>
+                  <string>Default Resource</string>
+                  <string>[Default Resource]</string>
+                </entry>
+              </resourceIds>
+              <queueBufferSize>1000</queueBufferSize>
+              <reattachAttachments>true</reattachAttachments>
+            </destinationConnectorProperties>
+            <script>if(sourceMap.get(&apos;method&apos;)==&apos;PUT&apos;){
+var msg = JSON.parse(connectorMessage.getRawData());
+
+var getRawResponse = $(&apos;d7&apos;).getMessage().toString();
+var images = getRawResponse.split(&apos;,&apos;);
+
+for(var i = 0; i&lt;images.length; i++){
+	if(images[i] != &quot;&quot;){
+		var imageName = images[i];
+		var imageNameDicom = imageName.replace(&apos;.jpg&apos;,&apos;.dcm&apos;);
+		var jpg2dcmCLI = &quot;/dcm4che-2/bin/jpg2dcm &quot;;
+		jpg2dcmCLI += &quot; -c /tmp/dicom/config/&quot; + $(&apos;dicomConfigFile&apos;) + &quot;.cfg&quot;;
+		jpg2dcmCLI += &quot; /tmp/flashair/&quot;+ imageName;
+		jpg2dcmCLI += &quot; /tmp/dicom/dicom_images/&quot;+  imageNameDicom;
+		var runCLI = java.lang.Runtime.getRuntime().exec(jpg2dcmCLI);
+		runCLI.waitFor();
+	}
+}
+}
+</script>
+          </properties>
+          <transformer version="3.5.1">
+            <elements/>
+            <inboundDataType>RAW</inboundDataType>
+            <outboundDataType>RAW</outboundDataType>
+            <inboundProperties class="com.mirth.connect.plugins.datatypes.raw.RawDataTypeProperties" version="3.5.1">
+              <batchProperties class="com.mirth.connect.plugins.datatypes.raw.RawBatchProperties" version="3.5.1">
+                <splitType>JavaScript</splitType>
+                <batchScript></batchScript>
+              </batchProperties>
+            </inboundProperties>
+            <outboundProperties class="com.mirth.connect.plugins.datatypes.raw.RawDataTypeProperties" version="3.5.1">
+              <batchProperties class="com.mirth.connect.plugins.datatypes.raw.RawBatchProperties" version="3.5.1">
+                <splitType>JavaScript</splitType>
+                <batchScript></batchScript>
+              </batchProperties>
+            </outboundProperties>
+          </transformer>
+          <responseTransformer version="3.5.1">
+            <elements/>
+            <inboundDataType>RAW</inboundDataType>
+            <outboundDataType>RAW</outboundDataType>
+            <inboundProperties class="com.mirth.connect.plugins.datatypes.raw.RawDataTypeProperties" version="3.5.1">
+              <batchProperties class="com.mirth.connect.plugins.datatypes.raw.RawBatchProperties" version="3.5.1">
+                <splitType>JavaScript</splitType>
+                <batchScript></batchScript>
+              </batchProperties>
+            </inboundProperties>
+            <outboundProperties class="com.mirth.connect.plugins.datatypes.raw.RawDataTypeProperties" version="3.5.1">
+              <batchProperties class="com.mirth.connect.plugins.datatypes.raw.RawBatchProperties" version="3.5.1">
+                <splitType>JavaScript</splitType>
+                <batchScript></batchScript>
+              </batchProperties>
+            </outboundProperties>
+          </responseTransformer>
+          <filter version="3.5.1">
+            <elements/>
+          </filter>
+          <transportName>JavaScript Writer</transportName>
+          <mode>DESTINATION</mode>
+          <enabled>false</enabled>
+          <waitForPrevious>true</waitForPrevious>
+        </connector>
+        <connector version="3.5.1">
+          <metaDataId>11</metaDataId>
+          <name>Send Dicom to DCM4CHEE</name>
+          <properties class="com.mirth.connect.connectors.js.JavaScriptDispatcherProperties" version="3.5.1">
+            <pluginProperties/>
+            <destinationConnectorProperties version="3.5.1">
+              <queueEnabled>false</queueEnabled>
+              <sendFirst>false</sendFirst>
+              <retryIntervalMillis>10000</retryIntervalMillis>
+              <regenerateTemplate>false</regenerateTemplate>
+              <retryCount>0</retryCount>
+              <rotate>false</rotate>
+              <includeFilterTransformer>false</includeFilterTransformer>
+              <threadCount>1</threadCount>
+              <threadAssignmentVariable></threadAssignmentVariable>
+              <validateResponse>false</validateResponse>
+              <resourceIds class="linked-hash-map">
+                <entry>
+                  <string>Default Resource</string>
+                  <string>[Default Resource]</string>
+                </entry>
+              </resourceIds>
+              <queueBufferSize>1000</queueBufferSize>
+              <reattachAttachments>true</reattachAttachments>
+            </destinationConnectorProperties>
+            <script>if(sourceMap.get(&apos;method&apos;)==&apos;PUT&apos;){
+var msg = JSON.parse(connectorMessage.getRawData());
+
+var getRawResponse = $(&apos;d7&apos;).getMessage().toString();
+var images = getRawResponse.split(&apos;,&apos;);
+
+for(var i = 0; i&lt;images.length; i++){
+	if(images[i] != &quot;&quot;){
+		var imageName = images[i];
+		var imageNameDicom = imageName.replace(&apos;.jpg&apos;,&apos;.dcm&apos;);
+		var dcmsndCLI = &quot;/dcm4che-2/bin/dcmsnd DCM4CHEE@localhost:11112 &quot;;
+		dcmsndCLI += &quot; /tmp/dicom/dicom_images/&quot;+  imageNameDicom;
+		var runCLI = java.lang.Runtime.getRuntime().exec(dcmsndCLI);
+		runCLI.waitFor();
+	}
+}
+}</script>
+          </properties>
+          <transformer version="3.5.1">
+            <elements/>
+            <inboundDataType>RAW</inboundDataType>
+            <outboundDataType>RAW</outboundDataType>
+            <inboundProperties class="com.mirth.connect.plugins.datatypes.raw.RawDataTypeProperties" version="3.5.1">
+              <batchProperties class="com.mirth.connect.plugins.datatypes.raw.RawBatchProperties" version="3.5.1">
+                <splitType>JavaScript</splitType>
+                <batchScript></batchScript>
+              </batchProperties>
+            </inboundProperties>
+            <outboundProperties class="com.mirth.connect.plugins.datatypes.raw.RawDataTypeProperties" version="3.5.1">
+              <batchProperties class="com.mirth.connect.plugins.datatypes.raw.RawBatchProperties" version="3.5.1">
+                <splitType>JavaScript</splitType>
+                <batchScript></batchScript>
+              </batchProperties>
+            </outboundProperties>
+          </transformer>
+          <responseTransformer version="3.5.1">
+            <elements/>
+            <inboundDataType>RAW</inboundDataType>
+            <outboundDataType>RAW</outboundDataType>
+            <inboundProperties class="com.mirth.connect.plugins.datatypes.raw.RawDataTypeProperties" version="3.5.1">
+              <batchProperties class="com.mirth.connect.plugins.datatypes.raw.RawBatchProperties" version="3.5.1">
+                <splitType>JavaScript</splitType>
+                <batchScript></batchScript>
+              </batchProperties>
+            </inboundProperties>
+            <outboundProperties class="com.mirth.connect.plugins.datatypes.raw.RawDataTypeProperties" version="3.5.1">
+              <batchProperties class="com.mirth.connect.plugins.datatypes.raw.RawBatchProperties" version="3.5.1">
+                <splitType>JavaScript</splitType>
+                <batchScript></batchScript>
+              </batchProperties>
+            </outboundProperties>
+          </responseTransformer>
+          <filter version="3.5.1">
+            <elements/>
+          </filter>
+          <transportName>JavaScript Writer</transportName>
+          <mode>DESTINATION</mode>
+          <enabled>false</enabled>
+          <waitForPrevious>true</waitForPrevious>
+        </connector>
+        <connector version="3.5.1">
+          <metaDataId>10</metaDataId>
+          <name>Done</name>
+          <properties class="com.mirth.connect.connectors.js.JavaScriptDispatcherProperties" version="3.5.1">
+            <pluginProperties/>
+            <destinationConnectorProperties version="3.5.1">
+              <queueEnabled>false</queueEnabled>
+              <sendFirst>false</sendFirst>
+              <retryIntervalMillis>10000</retryIntervalMillis>
+              <regenerateTemplate>false</regenerateTemplate>
+              <retryCount>0</retryCount>
+              <rotate>false</rotate>
+              <includeFilterTransformer>false</includeFilterTransformer>
+              <threadCount>1</threadCount>
+              <threadAssignmentVariable></threadAssignmentVariable>
+              <validateResponse>false</validateResponse>
+              <resourceIds class="linked-hash-map">
+                <entry>
+                  <string>Default Resource</string>
+                  <string>[Default Resource]</string>
+                </entry>
+              </resourceIds>
+              <queueBufferSize>1000</queueBufferSize>
+              <reattachAttachments>true</reattachAttachments>
+            </destinationConnectorProperties>
+            <script>var msg = JSON.parse(connectorMessage.getRawData());
+	var order_info = {
+		his_order_id: msg.his_order_id,
+		device_code: msg.device_code
+	}
+	var responseData;
+	var meta = &apos;{&quot;lastUpdated&quot;:&quot;&apos;+ new Date().toISOString()+&apos;&quot;}&apos;;
+		responseData = &apos;{&quot;resourceType&quot;:&quot;bundle&quot;,&apos;;
+		responseData += &apos;&quot;meta&quot;:&apos; + meta + &apos;, &apos;;
+		responseData += &apos;&quot;type&quot;:&quot;searchset&quot;, &apos;;
+		responseData += &apos;&quot;total&quot;:1, &apos;;
+		responseData += &apos;&quot;link&quot;:&quot;&quot;, &apos;;
+		responseData += &apos;&quot;entry&quot;: &apos;+ JSON.stringify(order_info) +&apos;&apos;;
+		responseData += &apos;}&apos;;
+	$(&apos;functFinalResponse&apos;)(responseData);</script>
+          </properties>
+          <transformer version="3.5.1">
+            <elements/>
+            <inboundDataType>RAW</inboundDataType>
+            <outboundDataType>RAW</outboundDataType>
+            <inboundProperties class="com.mirth.connect.plugins.datatypes.raw.RawDataTypeProperties" version="3.5.1">
+              <batchProperties class="com.mirth.connect.plugins.datatypes.raw.RawBatchProperties" version="3.5.1">
+                <splitType>JavaScript</splitType>
+                <batchScript></batchScript>
+              </batchProperties>
+            </inboundProperties>
+            <outboundProperties class="com.mirth.connect.plugins.datatypes.raw.RawDataTypeProperties" version="3.5.1">
+              <batchProperties class="com.mirth.connect.plugins.datatypes.raw.RawBatchProperties" version="3.5.1">
+                <splitType>JavaScript</splitType>
+                <batchScript></batchScript>
+              </batchProperties>
+            </outboundProperties>
+          </transformer>
+          <responseTransformer version="3.5.1">
+            <elements/>
+            <inboundDataType>RAW</inboundDataType>
+            <outboundDataType>RAW</outboundDataType>
+            <inboundProperties class="com.mirth.connect.plugins.datatypes.raw.RawDataTypeProperties" version="3.5.1">
+              <batchProperties class="com.mirth.connect.plugins.datatypes.raw.RawBatchProperties" version="3.5.1">
+                <splitType>JavaScript</splitType>
+                <batchScript></batchScript>
+              </batchProperties>
+            </inboundProperties>
+            <outboundProperties class="com.mirth.connect.plugins.datatypes.raw.RawDataTypeProperties" version="3.5.1">
+              <batchProperties class="com.mirth.connect.plugins.datatypes.raw.RawBatchProperties" version="3.5.1">
+                <splitType>JavaScript</splitType>
+                <batchScript></batchScript>
+              </batchProperties>
+            </outboundProperties>
+          </responseTransformer>
+          <filter version="3.5.1">
+            <elements/>
+          </filter>
+          <transportName>JavaScript Writer</transportName>
+          <mode>DESTINATION</mode>
+          <enabled>false</enabled>
+          <waitForPrevious>true</waitForPrevious>
+        </connector>
+      </destinationConnectors>
+      <preprocessingScript>// Modify the message variable below to pre process data
+return message;</preprocessingScript>
+      <postprocessingScript>// This script executes once after a message has been processed
+// Responses returned from here will be stored as &quot;Postprocessor&quot; in the response map
+
+var getResponseContent = channelMap.get(&apos;responseContent&apos;);
+if(getResponseContent!=null){
+	return channelMap.get(&apos;responseContent&apos;).toString();	
+}</postprocessingScript>
+      <deployScript>// This script executes once when the channel is deployed
+// You only have access to the globalMap and globalChannelMap here to persist data
+return;</deployScript>
+      <undeployScript>// This script executes once when the channel is undeployed
+// You only have access to the globalMap and globalChannelMap here to persist data
+return;</undeployScript>
+      <properties version="3.5.1">
+        <clearGlobalChannelMap>true</clearGlobalChannelMap>
+        <messageStorageMode>DEVELOPMENT</messageStorageMode>
+        <encryptData>true</encryptData>
+        <removeContentOnCompletion>false</removeContentOnCompletion>
+        <removeOnlyFilteredOnCompletion>false</removeOnlyFilteredOnCompletion>
+        <removeAttachmentsOnCompletion>false</removeAttachmentsOnCompletion>
+        <initialState>STARTED</initialState>
+        <storeAttachments>false</storeAttachments>
+        <metaDataColumns>
+          <metaDataColumn>
+            <name>SOURCE</name>
+            <type>STRING</type>
+            <mappingName>mirth_source</mappingName>
+          </metaDataColumn>
+          <metaDataColumn>
+            <name>TYPE</name>
+            <type>STRING</type>
+            <mappingName>mirth_type</mappingName>
+          </metaDataColumn>
+        </metaDataColumns>
+        <attachmentProperties version="3.5.1">
+          <type>None</type>
+          <properties/>
+        </attachmentProperties>
+        <resourceIds class="linked-hash-map">
+          <entry>
+            <string>Default Resource</string>
+            <string>[Default Resource]</string>
+          </entry>
+        </resourceIds>
+      </properties>
+      <exportData>
+        <metadata>
+          <enabled>true</enabled>
+          <lastModified>
+            <time>1527157717293</time>
+            <timezone>Asia/Kuala_Lumpur</timezone>
+          </lastModified>
+          <pruningSettings>
+            <archiveEnabled>true</archiveEnabled>
+          </pruningSettings>
+        </metadata>
+      </exportData>
+    </channel>
+    <channel version="3.5.1">
+      <id>2a4ea2b5-db70-4164-8443-5161f61986f4</id>
+      <nextMetaDataId>5</nextMetaDataId>
+      <name>Perform Dicom To DCM4CHEE</name>
+      <description></description>
+      <revision>10</revision>
+      <sourceConnector version="3.5.1">
+        <metaDataId>0</metaDataId>
+        <name>sourceConnector</name>
+        <properties class="com.mirth.connect.connectors.vm.VmReceiverProperties" version="3.5.1">
+          <pluginProperties/>
+          <sourceConnectorProperties version="3.5.1">
+            <responseVariable>None</responseVariable>
+            <respondAfterProcessing>true</respondAfterProcessing>
+            <processBatch>false</processBatch>
+            <firstResponse>false</firstResponse>
+            <processingThreads>1</processingThreads>
+            <resourceIds class="linked-hash-map">
+              <entry>
+                <string>Default Resource</string>
+                <string>[Default Resource]</string>
+              </entry>
+            </resourceIds>
+            <queueBufferSize>1000</queueBufferSize>
+          </sourceConnectorProperties>
+        </properties>
+        <transformer version="3.5.1">
+          <elements>
+            <com.mirth.connect.plugins.javascriptstep.JavaScriptStep>
+              <sequenceNumber>0</sequenceNumber>
+              <script>logger.info(&apos;give server to run dicom create and send task&apos;);</script>
+            </com.mirth.connect.plugins.javascriptstep.JavaScriptStep>
+          </elements>
+          <inboundTemplate encoding="base64"></inboundTemplate>
+          <outboundTemplate encoding="base64"></outboundTemplate>
+          <inboundDataType>RAW</inboundDataType>
+          <outboundDataType>RAW</outboundDataType>
+          <inboundProperties class="com.mirth.connect.plugins.datatypes.raw.RawDataTypeProperties" version="3.5.1">
+            <batchProperties class="com.mirth.connect.plugins.datatypes.raw.RawBatchProperties" version="3.5.1">
+              <splitType>JavaScript</splitType>
+              <batchScript></batchScript>
+            </batchProperties>
+          </inboundProperties>
+          <outboundProperties class="com.mirth.connect.plugins.datatypes.raw.RawDataTypeProperties" version="3.5.1">
+            <batchProperties class="com.mirth.connect.plugins.datatypes.raw.RawBatchProperties" version="3.5.1">
+              <splitType>JavaScript</splitType>
+              <batchScript></batchScript>
+            </batchProperties>
+          </outboundProperties>
+        </transformer>
+        <filter version="3.5.1">
+          <elements/>
+        </filter>
+        <transportName>Channel Reader</transportName>
+        <mode>SOURCE</mode>
+        <enabled>true</enabled>
+        <waitForPrevious>true</waitForPrevious>
+      </sourceConnector>
+      <destinationConnectors>
+        <connector version="3.5.1">
+          <metaDataId>1</metaDataId>
+          <name>Create Patient Dicom Config</name>
+          <properties class="com.mirth.connect.connectors.file.FileDispatcherProperties" version="3.5.1">
+            <pluginProperties/>
+            <destinationConnectorProperties version="3.5.1">
+              <queueEnabled>false</queueEnabled>
+              <sendFirst>false</sendFirst>
+              <retryIntervalMillis>10000</retryIntervalMillis>
+              <regenerateTemplate>false</regenerateTemplate>
+              <retryCount>0</retryCount>
+              <rotate>false</rotate>
+              <includeFilterTransformer>false</includeFilterTransformer>
+              <threadCount>1</threadCount>
+              <threadAssignmentVariable></threadAssignmentVariable>
+              <validateResponse>false</validateResponse>
+              <resourceIds class="linked-hash-map">
+                <entry>
+                  <string>Default Resource</string>
+                  <string>[Default Resource]</string>
+                </entry>
+              </resourceIds>
+              <queueBufferSize>1000</queueBufferSize>
+              <reattachAttachments>true</reattachAttachments>
+            </destinationConnectorProperties>
+            <scheme>FILE</scheme>
+            <host>/dicom/config/</host>
+            <outputPattern>${dicomConfigFile}.cfg</outputPattern>
+            <anonymous>true</anonymous>
+            <username>anonymous</username>
+            <password>anonymous</password>
+            <timeout>10000</timeout>
+            <secure>true</secure>
+            <passive>true</passive>
+            <validateConnection>true</validateConnection>
+            <outputAppend>false</outputAppend>
+            <errorOnExists>false</errorOnExists>
+            <temporary>false</temporary>
+            <binary>false</binary>
+            <charsetEncoding>DEFAULT_ENCODING</charsetEncoding>
+            <template># Patient&apos;s Name
+00100010:${PatientName}
+# Patient ID
+00100020:${PatientID}
+# Issuer of Patient ID
+#00100021:
+# Patient&apos;s Birth Date
+00100030:${PatientBirthDate}
+# Patient&apos;s Sex
+00100040:${PatientSex}
+
+# General Study Module Attributes
+# Study Instance UID
+#0020000D: 1.2.840.10008.5.1.4.1.1.7
+# Study Date
+00080020:20180518
+# Study Time
+00080030: 
+# Referring Physician&apos;s Name
+00080090:IWANG
+# Study ID
+00200010:1213123
+# Accession Number
+00080050:${AccessionNumber}
+# Study Description
+#00081030:
+
+# General Series Module Attributes
+# Modality
+00080060:ES
+# Series Instance UID
+#0020,000E:
+# Series Number
+00200011:1
+
+# General Equipment Module Attributes
+# Manufacturer
+00080070:
+
+# SC Equipment Module Attributes
+# Conversion Type
+00080064:SI
+
+# General Image Module Attributes
+# Instance Number
+00200013:1
+
+# Image Pixel Module Attributes (detected from JPEG file, if not specified)
+# Samples per Pixel
+#00280002:3
+# Photometric Interpretation
+#00280004:YBR_FULL_422
+# Planar Configuration
+#00280006:0
+# Rows
+#00280010:
+# Columns
+#00280011:
+# Bits Allocated
+#00280100:8
+# Bits Stored
+#00280101:8
+# High Bit
+#00280102:7
+# Pixel Representation
+#00280103:0</template>
+          </properties>
+          <transformer version="3.5.1">
+            <elements>
+              <com.mirth.connect.plugins.javascriptstep.JavaScriptStep>
+                <sequenceNumber>0</sequenceNumber>
+                <script>var dicomConfigFile = &apos;FALSE&apos;;
+var dicomAttributesData = &apos;&apos;;
+
+if(sourceMap.get(&apos;method&apos;)==&apos;PUT&apos;){
+var msg = JSON.parse(connectorMessage.getRawData());
+	var queryParameters = [];
+	var query = &apos;SELECT o.patient_id, o.patient_name, o.patient_dob, o.device_code, o.his_order_id, o.patient_gender &apos;;
+	query += &apos;FROM orders o &apos;;
+	query += &apos;WHERE o.his_order_id=&quot;&apos;+msg.his_order_id+&apos;&quot;&apos;;
+	var result = $(&apos;functExecuteQuery&apos;)(query,queryParameters);
+
+	var countResult = result.size();
+	var count = 1;
+	var device = &apos;&apos;;
+	while (result.next()){
+		var dob = result.getString(3).split(&apos;-&apos;);
+		var patientName = result.getString(2);
+		channelMap.put(&apos;PatientName&apos;, patientName.replace(&apos; &apos;,&apos;^&apos;));
+		channelMap.put(&apos;PatientID&apos;, result.getString(1));
+		channelMap.put(&apos;PatientBirthDate&apos;, dob[0]+dob[1]+dob[2]);
+		channelMap.put(&apos;PatientSex&apos;,result.getString(6));
+		channelMap.put(&apos;AccessionNumber&apos;, result.getString(5));
+		dicomConfigFile = result.getString(1) + &apos;_&apos; + result.getString(5);	
+		};
+}
+
+globalChannelMap.put(&apos;dicomConfigFile&apos;, dicomConfigFile);</script>
+              </com.mirth.connect.plugins.javascriptstep.JavaScriptStep>
+            </elements>
+            <inboundTemplate encoding="base64"></inboundTemplate>
+            <outboundTemplate encoding="base64"></outboundTemplate>
+            <inboundDataType>RAW</inboundDataType>
+            <outboundDataType>RAW</outboundDataType>
+            <inboundProperties class="com.mirth.connect.plugins.datatypes.raw.RawDataTypeProperties" version="3.5.1">
+              <batchProperties class="com.mirth.connect.plugins.datatypes.raw.RawBatchProperties" version="3.5.1">
+                <splitType>JavaScript</splitType>
+                <batchScript></batchScript>
+              </batchProperties>
+            </inboundProperties>
+            <outboundProperties class="com.mirth.connect.plugins.datatypes.raw.RawDataTypeProperties" version="3.5.1">
+              <batchProperties class="com.mirth.connect.plugins.datatypes.raw.RawBatchProperties" version="3.5.1">
+                <splitType>JavaScript</splitType>
+                <batchScript></batchScript>
+              </batchProperties>
+            </outboundProperties>
+          </transformer>
+          <responseTransformer version="3.5.1">
+            <elements/>
+            <inboundDataType>RAW</inboundDataType>
+            <outboundDataType>RAW</outboundDataType>
+            <inboundProperties class="com.mirth.connect.plugins.datatypes.raw.RawDataTypeProperties" version="3.5.1">
+              <batchProperties class="com.mirth.connect.plugins.datatypes.raw.RawBatchProperties" version="3.5.1">
+                <splitType>JavaScript</splitType>
+                <batchScript></batchScript>
+              </batchProperties>
+            </inboundProperties>
+            <outboundProperties class="com.mirth.connect.plugins.datatypes.raw.RawDataTypeProperties" version="3.5.1">
+              <batchProperties class="com.mirth.connect.plugins.datatypes.raw.RawBatchProperties" version="3.5.1">
+                <splitType>JavaScript</splitType>
+                <batchScript></batchScript>
+              </batchProperties>
+            </outboundProperties>
+          </responseTransformer>
+          <filter version="3.5.1">
+            <elements/>
+          </filter>
+          <transportName>File Writer</transportName>
+          <mode>DESTINATION</mode>
+          <enabled>true</enabled>
+          <waitForPrevious>true</waitForPrevious>
+        </connector>
+        <connector version="3.5.1">
+          <metaDataId>2</metaDataId>
+          <name>Create Dicom Files(s)</name>
+          <properties class="com.mirth.connect.connectors.js.JavaScriptDispatcherProperties" version="3.5.1">
+            <pluginProperties/>
+            <destinationConnectorProperties version="3.5.1">
+              <queueEnabled>false</queueEnabled>
+              <sendFirst>false</sendFirst>
+              <retryIntervalMillis>10000</retryIntervalMillis>
+              <regenerateTemplate>false</regenerateTemplate>
+              <retryCount>0</retryCount>
+              <rotate>false</rotate>
+              <includeFilterTransformer>false</includeFilterTransformer>
+              <threadCount>1</threadCount>
+              <threadAssignmentVariable></threadAssignmentVariable>
+              <validateResponse>false</validateResponse>
+              <resourceIds class="linked-hash-map">
+                <entry>
+                  <string>Default Resource</string>
+                  <string>[Default Resource]</string>
+                </entry>
+              </resourceIds>
+              <queueBufferSize>1000</queueBufferSize>
+              <reattachAttachments>true</reattachAttachments>
+            </destinationConnectorProperties>
+            <script>if(sourceMap.get(&apos;method&apos;)==&apos;PUT&apos;){
+var msg = JSON.parse(connectorMessage.getRawData());
+
+var getRawResponse = $(&apos;d7&apos;).getMessage().toString();
+var images = getRawResponse.split(&apos;,&apos;);
+
+for(var i = 0; i&lt;images.length; i++){
+	if(images[i] != &quot;&quot;){
+		var imageName = images[i];
+		var imageNameDicom = imageName.replace(&apos;.jpg&apos;,&apos;.dcm&apos;);
+		var jpg2dcmCLI = &quot;/dcm4che-2/bin/jpg2dcm &quot;;
+		jpg2dcmCLI += &quot; -c /tmp/dicom/config/&quot; + $(&apos;dicomConfigFile&apos;) + &quot;.cfg&quot;;
+		jpg2dcmCLI += &quot; /tmp/flashair/&quot;+ imageName;
+		jpg2dcmCLI += &quot; /tmp/dicom/dicom_images/&quot;+  imageNameDicom;
+		logger.info(jpg2dcmCLI);
+//		var runCLI = java.lang.Runtime.getRuntime().exec(jpg2dcmCLI);
+//		runCLI.waitFor();
+	}
+}
+}
+</script>
+          </properties>
+          <transformer version="3.5.1">
+            <elements/>
+            <inboundDataType>RAW</inboundDataType>
+            <outboundDataType>RAW</outboundDataType>
+            <inboundProperties class="com.mirth.connect.plugins.datatypes.raw.RawDataTypeProperties" version="3.5.1">
+              <batchProperties class="com.mirth.connect.plugins.datatypes.raw.RawBatchProperties" version="3.5.1">
+                <splitType>JavaScript</splitType>
+                <batchScript></batchScript>
+              </batchProperties>
+            </inboundProperties>
+            <outboundProperties class="com.mirth.connect.plugins.datatypes.raw.RawDataTypeProperties" version="3.5.1">
+              <batchProperties class="com.mirth.connect.plugins.datatypes.raw.RawBatchProperties" version="3.5.1">
+                <splitType>JavaScript</splitType>
+                <batchScript></batchScript>
+              </batchProperties>
+            </outboundProperties>
+          </transformer>
+          <responseTransformer version="3.5.1">
+            <elements/>
+            <inboundDataType>RAW</inboundDataType>
+            <outboundDataType>RAW</outboundDataType>
+            <inboundProperties class="com.mirth.connect.plugins.datatypes.raw.RawDataTypeProperties" version="3.5.1">
+              <batchProperties class="com.mirth.connect.plugins.datatypes.raw.RawBatchProperties" version="3.5.1">
+                <splitType>JavaScript</splitType>
+                <batchScript></batchScript>
+              </batchProperties>
+            </inboundProperties>
+            <outboundProperties class="com.mirth.connect.plugins.datatypes.raw.RawDataTypeProperties" version="3.5.1">
+              <batchProperties class="com.mirth.connect.plugins.datatypes.raw.RawBatchProperties" version="3.5.1">
+                <splitType>JavaScript</splitType>
+                <batchScript></batchScript>
+              </batchProperties>
+            </outboundProperties>
+          </responseTransformer>
+          <filter version="3.5.1">
+            <elements/>
+          </filter>
+          <transportName>JavaScript Writer</transportName>
+          <mode>DESTINATION</mode>
+          <enabled>true</enabled>
+          <waitForPrevious>true</waitForPrevious>
+        </connector>
+        <connector version="3.5.1">
+          <metaDataId>3</metaDataId>
+          <name>Send Dicom To DCM4CHEE</name>
+          <properties class="com.mirth.connect.connectors.js.JavaScriptDispatcherProperties" version="3.5.1">
+            <pluginProperties/>
+            <destinationConnectorProperties version="3.5.1">
+              <queueEnabled>false</queueEnabled>
+              <sendFirst>false</sendFirst>
+              <retryIntervalMillis>10000</retryIntervalMillis>
+              <regenerateTemplate>false</regenerateTemplate>
+              <retryCount>0</retryCount>
+              <rotate>false</rotate>
+              <includeFilterTransformer>false</includeFilterTransformer>
+              <threadCount>1</threadCount>
+              <threadAssignmentVariable></threadAssignmentVariable>
+              <validateResponse>false</validateResponse>
+              <resourceIds class="linked-hash-map">
+                <entry>
+                  <string>Default Resource</string>
+                  <string>[Default Resource]</string>
+                </entry>
+              </resourceIds>
+              <queueBufferSize>1000</queueBufferSize>
+              <reattachAttachments>true</reattachAttachments>
+            </destinationConnectorProperties>
+            <script>if(sourceMap.get(&apos;method&apos;)==&apos;PUT&apos;){
+var msg = JSON.parse(connectorMessage.getRawData());
+
+var getRawResponse = $(&apos;d7&apos;).getMessage().toString();
+var images = getRawResponse.split(&apos;,&apos;);
+
+for(var i = 0; i&lt;images.length; i++){
+	if(images[i] != &quot;&quot;){
+		var imageName = images[i];
+		var imageNameDicom = imageName.replace(&apos;.jpg&apos;,&apos;.dcm&apos;);
+		var dcmsndCLI = &quot;/dcm4che-2/bin/dcmsnd DCM4CHEE@localhost:11112 &quot;;
+		dcmsndCLI += &quot; /tmp/dicom/dicom_images/&quot;+  imageNameDicom;
+//		var runCLI = java.lang.Runtime.getRuntime().exec(dcmsndCLI);
+//		runCLI.waitFor();
+		logger.info(dcmsndCLI);
+	}
+}
+}</script>
+          </properties>
+          <transformer version="3.5.1">
+            <elements/>
+            <inboundDataType>RAW</inboundDataType>
+            <outboundDataType>RAW</outboundDataType>
+            <inboundProperties class="com.mirth.connect.plugins.datatypes.raw.RawDataTypeProperties" version="3.5.1">
+              <batchProperties class="com.mirth.connect.plugins.datatypes.raw.RawBatchProperties" version="3.5.1">
+                <splitType>JavaScript</splitType>
+                <batchScript></batchScript>
+              </batchProperties>
+            </inboundProperties>
+            <outboundProperties class="com.mirth.connect.plugins.datatypes.raw.RawDataTypeProperties" version="3.5.1">
+              <batchProperties class="com.mirth.connect.plugins.datatypes.raw.RawBatchProperties" version="3.5.1">
+                <splitType>JavaScript</splitType>
+                <batchScript></batchScript>
+              </batchProperties>
+            </outboundProperties>
+          </transformer>
+          <responseTransformer version="3.5.1">
+            <elements/>
+            <inboundDataType>RAW</inboundDataType>
+            <outboundDataType>RAW</outboundDataType>
+            <inboundProperties class="com.mirth.connect.plugins.datatypes.raw.RawDataTypeProperties" version="3.5.1">
+              <batchProperties class="com.mirth.connect.plugins.datatypes.raw.RawBatchProperties" version="3.5.1">
+                <splitType>JavaScript</splitType>
+                <batchScript></batchScript>
+              </batchProperties>
+            </inboundProperties>
+            <outboundProperties class="com.mirth.connect.plugins.datatypes.raw.RawDataTypeProperties" version="3.5.1">
+              <batchProperties class="com.mirth.connect.plugins.datatypes.raw.RawBatchProperties" version="3.5.1">
+                <splitType>JavaScript</splitType>
+                <batchScript></batchScript>
+              </batchProperties>
+            </outboundProperties>
+          </responseTransformer>
+          <filter version="3.5.1">
+            <elements/>
+          </filter>
+          <transportName>JavaScript Writer</transportName>
+          <mode>DESTINATION</mode>
+          <enabled>true</enabled>
+          <waitForPrevious>true</waitForPrevious>
+        </connector>
+      </destinationConnectors>
+      <preprocessingScript>// Modify the message variable below to pre process data
+return message;</preprocessingScript>
+      <postprocessingScript>// This script executes once after a message has been processed
+// Responses returned from here will be stored as &quot;Postprocessor&quot; in the response map
+return;</postprocessingScript>
+      <deployScript>// This script executes once when the channel is deployed
+// You only have access to the globalMap and globalChannelMap here to persist data
+return;</deployScript>
+      <undeployScript>// This script executes once when the channel is undeployed
+// You only have access to the globalMap and globalChannelMap here to persist data
+return;</undeployScript>
+      <properties version="3.5.1">
+        <clearGlobalChannelMap>true</clearGlobalChannelMap>
+        <messageStorageMode>DEVELOPMENT</messageStorageMode>
+        <encryptData>false</encryptData>
+        <removeContentOnCompletion>false</removeContentOnCompletion>
+        <removeOnlyFilteredOnCompletion>false</removeOnlyFilteredOnCompletion>
+        <removeAttachmentsOnCompletion>false</removeAttachmentsOnCompletion>
+        <initialState>STARTED</initialState>
+        <storeAttachments>false</storeAttachments>
+        <metaDataColumns>
+          <metaDataColumn>
+            <name>SOURCE</name>
+            <type>STRING</type>
+            <mappingName>mirth_source</mappingName>
+          </metaDataColumn>
+          <metaDataColumn>
+            <name>TYPE</name>
+            <type>STRING</type>
+            <mappingName>mirth_type</mappingName>
+          </metaDataColumn>
+        </metaDataColumns>
+        <attachmentProperties version="3.5.1">
+          <type>None</type>
+          <properties/>
+        </attachmentProperties>
+        <resourceIds class="linked-hash-map">
+          <entry>
+            <string>Default Resource</string>
+            <string>[Default Resource]</string>
+          </entry>
+        </resourceIds>
+      </properties>
+      <exportData>
+        <metadata>
+          <enabled>true</enabled>
+          <lastModified>
+            <time>1527158044652</time>
             <timezone>Asia/Kuala_Lumpur</timezone>
           </lastModified>
           <pruningSettings>
