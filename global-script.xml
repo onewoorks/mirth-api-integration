@@ -1,0 +1,61 @@
+<map>
+  <entry>
+    <string>Undeploy</string>
+    <string>// This script executes once for each deploy, undeploy, or redeploy task
+// if at least one channel was undeployed
+// You only have access to the globalMap here to persist data
+return;</string>
+  </entry>
+  <entry>
+    <string>Postprocessor</string>
+    <string>// This script executes once after a message has been processed
+// This script applies across all channels
+// Responses returned from here will be stored as &quot;Postprocessor&quot; in the response map
+// You have access to &quot;response&quot;, if returned from the channel postprocessor
+return;</string>
+  </entry>
+  <entry>
+    <string>Deploy</string>
+    <string>// This script executes once for each deploy or redeploy task
+// You only have access to the globalMap here to persist data
+return;</string>
+  </entry>
+  <entry>
+    <string>Preprocessor</string>
+    <string>// Modify the message variable below to pre process data
+// This script applies across all channels
+
+//localhost development
+globalChannelMap.put(&apos;gateway_database&apos;,&apos;localhost:3306/integdb&apos;);
+globalChannelMap.put(&apos;gateway_database_user&apos;,&apos;root&apos;);
+globalChannelMap.put(&apos;gateway_database_pass&apos;,&apos;re^mp123&apos;);
+
+////heitech integration database
+//globalChannelMap.put(&apos;gateway_database&apos;,&apos;172.19.64.7:3306/integdb&apos;);
+//globalChannelMap.put(&apos;gateway_database_user&apos;,&apos;root&apos;);
+//globalChannelMap.put(&apos;gateway_database_pass&apos;,&apos;Root@!23&apos;);
+
+////testing laptop integration database
+//globalChannelMap.put(&apos;gateway_database&apos;,&apos;172.19.64.2:3306/device_integration&apos;);
+//globalChannelMap.put(&apos;gateway_database_user&apos;,&apos;root&apos;);
+//globalChannelMap.put(&apos;gateway_database_pass&apos;,&apos;Root@!23&apos;);
+
+
+function responseDataFHIR(countResult,dataEntry){
+	var responseData;
+	var meta = &apos;{&quot;lastUpdated&quot;:&quot;&apos;+ new Date().toISOString()+&apos;&quot;}&apos;;
+		responseData = &apos;{&quot;resourceType&quot;:&quot;bundle&quot;,&apos;;
+		responseData += &apos;&quot;meta&quot;:&apos; + meta + &apos;, &apos;;
+		responseData += &apos;&quot;type&quot;:&quot;searchset&quot;, &apos;;
+		responseData += &apos;&quot;total&quot;:&quot;&apos; + countResult + &apos;&quot;, &apos;;
+		responseData += &apos;&quot;link&quot;:&quot;&quot;, &apos;;
+//		responseData += (countResult&gt;1) ? &apos;&quot;entry&quot;:&apos;+ dataEntry : &apos;[&apos;+dataEntry+&apos;]&apos;;
+		responseData += &apos;&quot;entry&quot;:&apos;+ dataEntry;
+		responseData += &apos;}&apos;;
+		return responseData;
+}
+globalChannelMap.put(&apos;responseDataFHIR&apos;,validate(responseDataFHIR, &apos;&apos;, new Array()));
+
+return message;</string>
+  </entry>
+</map>

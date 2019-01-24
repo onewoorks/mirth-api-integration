@@ -1,0 +1,691 @@
+<channel version="3.5.1">
+  <id>a471e1fa-2ed6-4623-8bb8-d44be4f9af16</id>
+  <nextMetaDataId>5</nextMetaDataId>
+  <name>Mobile Restful</name>
+  <description></description>
+  <revision>17</revision>
+  <sourceConnector version="3.5.1">
+    <metaDataId>0</metaDataId>
+    <name>sourceConnector</name>
+    <properties class="com.mirth.connect.connectors.http.HttpReceiverProperties" version="3.5.1">
+      <pluginProperties>
+        <com.mirth.connect.plugins.httpauth.NoneHttpAuthProperties version="3.5.1">
+  <authType>NONE</authType>
+        </com.mirth.connect.plugins.httpauth.NoneHttpAuthProperties>
+      </pluginProperties>
+      <listenerConnectorProperties version="3.5.1">
+        <host>0.0.0.0</host>
+        <port>4848</port>
+      </listenerConnectorProperties>
+      <sourceConnectorProperties version="3.5.1">
+        <responseVariable>Postprocessor</responseVariable>
+        <respondAfterProcessing>true</respondAfterProcessing>
+        <processBatch>false</processBatch>
+        <firstResponse>false</firstResponse>
+        <processingThreads>1</processingThreads>
+        <resourceIds class="linked-hash-map">
+          <entry>
+            <string>Default Resource</string>
+            <string>[Default Resource]</string>
+          </entry>
+        </resourceIds>
+        <queueBufferSize>1000</queueBufferSize>
+      </sourceConnectorProperties>
+      <xmlBody>false</xmlBody>
+      <parseMultipart>true</parseMultipart>
+      <includeMetadata>false</includeMetadata>
+      <binaryMimeTypes>application/.*(?&lt;!json|xml)$|image/.*|video/.*|audio/.*</binaryMimeTypes>
+      <binaryMimeTypesRegex>true</binaryMimeTypesRegex>
+      <responseContentType>application/json</responseContentType>
+      <responseDataTypeBinary>false</responseDataTypeBinary>
+      <responseStatusCode></responseStatusCode>
+      <responseHeaders class="linked-hash-map"/>
+      <charset>UTF-8</charset>
+      <contextPath>hiskkm-phc</contextPath>
+      <timeout>0</timeout>
+      <staticResources/>
+    </properties>
+    <transformer version="3.5.1">
+      <elements>
+        <com.mirth.connect.plugins.javascriptstep.JavaScriptStep>
+          <name>GeneralFunctions</name>
+          <sequenceNumber>0</sequenceNumber>
+          <script>function executeQuery(query,queryParameters){
+	var dbConn;
+	try {
+		dbConn = DatabaseConnectionFactory.createDatabaseConnection(&apos;com.mysql.jdbc.Driver&apos;,&apos;jdbc:mysql://localhost:2222/his_kkm&apos;,&apos;root&apos;,&apos;R00t@!23&apos;);
+		var result = dbConn.executeCachedQuery(query,queryParameters);
+		return result;
+	} finally {
+		if (dbConn) { 
+			dbConn.close();
+		}
+	}
+}
+
+function executeInsertQuery(query,queryParameters){
+	var dbConn;
+	try {
+		dbConn = DatabaseConnectionFactory.createDatabaseConnection(&apos;com.mysql.jdbc.Driver&apos;,&apos;jdbc:mysql://localhost:2222/his_kkm&apos;,&apos;root&apos;,&apos;R00t@!23&apos;);
+		var result = dbConn.executeUpdate(query,queryParameters);
+		return result;
+	} finally {
+		if (dbConn) { 
+			dbConn.close();
+		}
+	}
+}
+
+function finalResponse(jsonString){
+	channelMap.put(&apos;responseContent&apos;, JSON.stringify(jsonString));
+	channelMap.put(&apos;responseContentType&apos;, &apos;application/fhir+json&apos;);
+}
+
+
+globalMap.put(&apos;functionExecuteQuery&apos;, validate(executeQuery,&apos;&apos;, new Array()));
+globalMap.put(&apos;functionInsertInsertQuery&apos;, validate( executeInsertQuery, &apos;&apos;, new Array()));
+globalMap.put(&apos;finalResponse&apos;, validate(finalResponse,&apos;&apos;, new Array()));</script>
+        </com.mirth.connect.plugins.javascriptstep.JavaScriptStep>
+        <com.mirth.connect.plugins.javascriptstep.JavaScriptStep>
+          <name>RouterController</name>
+          <sequenceNumber>1</sequenceNumber>
+          <script>var contextPath = sourceMap.get(&apos;contextPath&apos;);
+var pathParam = contextPath.split(&apos;/&apos;);
+
+var routePath = String(pathParam[2]);
+
+switch(routePath){
+	case &apos;open-call-card&apos;:
+		destinationSet.removeAllExcept(2);
+		break;
+	case &apos;new-phc&apos;:
+		destinationSet.removeAllExcept(1);
+		break;
+	case &apos;upload-phc&apos;:
+		destinationSet.removeAllExcept(3);
+		break;
+	case &apos;user-list&apos;:
+		destinationSet.removeAllExcept(4);
+		break;
+	default:
+		logger.info(&apos;tak remove apa-apa&apos;);
+		break;
+}</script>
+        </com.mirth.connect.plugins.javascriptstep.JavaScriptStep>
+      </elements>
+      <inboundTemplate encoding="base64">ewoJImNhbGxfY2FyZF9ubyI6IiIsCgkicmVjZWl2ZWRfY2FsbCI6IiIsCgkicGxhdGVfbm8iOiIi
+LAoJInJlc3BvbnNlX3RlYW0iOiB7fSwKCSJyZW1hcmtzIjoiIiwKCSJhZGRyZXNzIjoiIiwKCSJs
+YW5kbWFyayI6IiIKfQ==</inboundTemplate>
+      <outboundTemplate encoding="base64"></outboundTemplate>
+      <inboundDataType>RAW</inboundDataType>
+      <outboundDataType>RAW</outboundDataType>
+      <inboundProperties class="com.mirth.connect.plugins.datatypes.raw.RawDataTypeProperties" version="3.5.1">
+        <batchProperties class="com.mirth.connect.plugins.datatypes.raw.RawBatchProperties" version="3.5.1">
+          <splitType>JavaScript</splitType>
+          <batchScript></batchScript>
+        </batchProperties>
+      </inboundProperties>
+      <outboundProperties class="com.mirth.connect.plugins.datatypes.raw.RawDataTypeProperties" version="3.5.1">
+        <batchProperties class="com.mirth.connect.plugins.datatypes.raw.RawBatchProperties" version="3.5.1">
+          <splitType>JavaScript</splitType>
+          <batchScript></batchScript>
+        </batchProperties>
+      </outboundProperties>
+    </transformer>
+    <filter version="3.5.1">
+      <elements/>
+    </filter>
+    <transportName>HTTP Listener</transportName>
+    <mode>SOURCE</mode>
+    <enabled>true</enabled>
+    <waitForPrevious>true</waitForPrevious>
+  </sourceConnector>
+  <destinationConnectors>
+    <connector version="3.5.1">
+      <metaDataId>1</metaDataId>
+      <name>CREATE New PHC</name>
+      <properties class="com.mirth.connect.connectors.vm.VmDispatcherProperties" version="3.5.1">
+        <pluginProperties/>
+        <destinationConnectorProperties version="3.5.1">
+          <queueEnabled>false</queueEnabled>
+          <sendFirst>false</sendFirst>
+          <retryIntervalMillis>10000</retryIntervalMillis>
+          <regenerateTemplate>false</regenerateTemplate>
+          <retryCount>0</retryCount>
+          <rotate>false</rotate>
+          <includeFilterTransformer>false</includeFilterTransformer>
+          <threadCount>1</threadCount>
+          <threadAssignmentVariable></threadAssignmentVariable>
+          <validateResponse>false</validateResponse>
+          <resourceIds class="linked-hash-map">
+            <entry>
+              <string>Default Resource</string>
+              <string>[Default Resource]</string>
+            </entry>
+          </resourceIds>
+          <queueBufferSize>1000</queueBufferSize>
+          <reattachAttachments>true</reattachAttachments>
+        </destinationConnectorProperties>
+        <channelId>none</channelId>
+        <channelTemplate></channelTemplate>
+        <mapVariables/>
+      </properties>
+      <transformer version="3.5.1">
+        <elements>
+          <com.mirth.connect.plugins.javascriptstep.JavaScriptStep>
+            <name>Post Data</name>
+            <sequenceNumber>0</sequenceNumber>
+            <script>if(sourceMap.get(&apos;method&apos;)==&apos;POST&apos;){
+	if(connectorMessage.getRawData() != &apos;&apos;){
+		var data = JSON.parse(connectorMessage.getRawData());
+
+		var call_card_no = msg[&apos;call_card_no&apos;];
+		var received_call = msg[&apos;received_call&apos;];
+		var plate_no = msg[&apos;plate_no&apos;];
+		var remarks = msg[&apos;remarks&apos;];
+		var address = msg[&apos;address&apos;];
+		var landmark = msg[&apos;landmark&apos;];
+
+		var query = &quot;INSERT INTO phc_assign_ambulance (call_card_no, receive_call, plate_no, assign_remarks, asign_address) VALUES (?,?,?,?,?)&quot;
+		var queryParameters = [call_card_no, received_call, plate_no, remarks, address];
+		
+		$(&apos;functionInsertInsertQuery&apos;)(query,queryParameters);
+
+	}
+}</script>
+          </com.mirth.connect.plugins.javascriptstep.JavaScriptStep>
+        </elements>
+        <inboundTemplate encoding="base64">ewoJImNhbGxfY2FyZF9ubyI6IiIsCgkicmVjZWl2ZWRfY2FsbCI6IiIsCgkicGxhdGVfbm8iOiIi
+LAoJInJlc3BvbnNlX3RlYW0iOiB7fSwKCSJyZW1hcmtzIjoiIiwKCSJhZGRyZXNzIjoiIiwKCSJs
+YW5kbWFyayI6IiIKfQ==</inboundTemplate>
+        <outboundTemplate encoding="base64"></outboundTemplate>
+        <inboundDataType>RAW</inboundDataType>
+        <outboundDataType>JSON</outboundDataType>
+        <inboundProperties class="com.mirth.connect.plugins.datatypes.raw.RawDataTypeProperties" version="3.5.1">
+          <batchProperties class="com.mirth.connect.plugins.datatypes.raw.RawBatchProperties" version="3.5.1">
+            <splitType>JavaScript</splitType>
+            <batchScript></batchScript>
+          </batchProperties>
+        </inboundProperties>
+        <outboundProperties class="com.mirth.connect.plugins.datatypes.json.JSONDataTypeProperties" version="3.5.1">
+          <batchProperties class="com.mirth.connect.plugins.datatypes.json.JSONBatchProperties" version="3.5.1">
+            <splitType>JavaScript</splitType>
+            <batchScript></batchScript>
+          </batchProperties>
+        </outboundProperties>
+      </transformer>
+      <responseTransformer version="3.5.1">
+        <elements/>
+        <inboundTemplate encoding="base64"></inboundTemplate>
+        <outboundTemplate encoding="base64"></outboundTemplate>
+        <inboundDataType>JSON</inboundDataType>
+        <outboundDataType>JSON</outboundDataType>
+        <inboundProperties class="com.mirth.connect.plugins.datatypes.json.JSONDataTypeProperties" version="3.5.1">
+          <batchProperties class="com.mirth.connect.plugins.datatypes.json.JSONBatchProperties" version="3.5.1">
+            <splitType>JavaScript</splitType>
+            <batchScript></batchScript>
+          </batchProperties>
+        </inboundProperties>
+        <outboundProperties class="com.mirth.connect.plugins.datatypes.json.JSONDataTypeProperties" version="3.5.1">
+          <batchProperties class="com.mirth.connect.plugins.datatypes.json.JSONBatchProperties" version="3.5.1">
+            <splitType>JavaScript</splitType>
+            <batchScript></batchScript>
+          </batchProperties>
+        </outboundProperties>
+      </responseTransformer>
+      <filter version="3.5.1">
+        <elements/>
+      </filter>
+      <transportName>Channel Writer</transportName>
+      <mode>DESTINATION</mode>
+      <enabled>true</enabled>
+      <waitForPrevious>true</waitForPrevious>
+    </connector>
+    <connector version="3.5.1">
+      <metaDataId>2</metaDataId>
+      <name>READ PHC List</name>
+      <properties class="com.mirth.connect.connectors.vm.VmDispatcherProperties" version="3.5.1">
+        <pluginProperties/>
+        <destinationConnectorProperties version="3.5.1">
+          <queueEnabled>false</queueEnabled>
+          <sendFirst>false</sendFirst>
+          <retryIntervalMillis>10000</retryIntervalMillis>
+          <regenerateTemplate>false</regenerateTemplate>
+          <retryCount>0</retryCount>
+          <rotate>false</rotate>
+          <includeFilterTransformer>false</includeFilterTransformer>
+          <threadCount>1</threadCount>
+          <threadAssignmentVariable></threadAssignmentVariable>
+          <validateResponse>false</validateResponse>
+          <resourceIds class="linked-hash-map">
+            <entry>
+              <string>Default Resource</string>
+              <string>[Default Resource]</string>
+            </entry>
+          </resourceIds>
+          <queueBufferSize>1000</queueBufferSize>
+          <reattachAttachments>true</reattachAttachments>
+        </destinationConnectorProperties>
+        <channelId>none</channelId>
+        <channelTemplate>${message.encodedData}</channelTemplate>
+        <mapVariables/>
+      </properties>
+      <transformer version="3.5.1">
+        <elements>
+          <com.mirth.connect.plugins.javascriptstep.JavaScriptStep>
+            <name>GET LIST</name>
+            <sequenceNumber>0</sequenceNumber>
+            <script>if(sourceMap.get(&apos;method&apos;)==&apos;GET&apos;){
+	var query = &quot;SELECT a.assign_id, a.call_card_no, a.receive_call, a.plate_no, &quot;
+	query 	+= &quot;(SELECT &quot;
+	query	+= &quot;GROUP_CONCAT(&quot;
+	query	+= &quot;patient_name, &quot;
+	query	+= &quot;&apos;, &apos;,&quot;
+	query	+= &quot;CASE &quot;
+	query	+=	&quot;WHEN gender = &apos;M&apos; Then &apos;MALE&apos; &quot;
+	query	+= 	&quot;WHEN gender = &apos;F&apos; Then &apos;FEMALE&apos; &quot;
+	query	+= 	&quot;WHEN gender = &apos;U&apos; then &apos;UNKNOWN&apos; &quot;
+	query	+=	&quot;END, &quot;
+	query	+= &quot;&apos;, &apos;, &quot;
+	query	+= &quot;TRIM(BOTH&apos;\&quot;&apos; FROM json_details-&gt;\&quot;$.patient_info.age\&quot;) &quot;
+	query	+= &quot;SEPARATOR &apos; | &apos;) as patient &quot;
+	query	+= &quot;FROM temp_document_phc WHERE assign_id = a.assign_id GROUP BY assign_id) as patient &quot;
+	query	+= &quot;FROM phc_assign_ambulance a&quot;
+	var queryParameters = [];
+	logger.info(query)
+	var result = $(&apos;functionExecuteQuery&apos;)(query,queryParameters);
+
+	var responseData = [];
+	while(result.next()){
+		var call_card = {
+			assign_id: result.getString(1),
+			call_card_no: result.getString(2),
+			received_call: result.getString(3),
+			plate_no: result.getString(4),
+			patient: result.getString(5)
+		}
+		responseData.push(call_card);
+	}
+
+	var finalResult = {result: responseData};
+	$(&apos;finalResponse&apos;)(finalResult);
+
+//	respon÷se.setMessage(&quot;ok&quot;;
+//	Response.Response(&apos;&lt;test&gt;test&lt;/test&gt;&apos;);
+}</script>
+          </com.mirth.connect.plugins.javascriptstep.JavaScriptStep>
+        </elements>
+        <inboundTemplate encoding="base64"></inboundTemplate>
+        <outboundTemplate encoding="base64"></outboundTemplate>
+        <inboundDataType>RAW</inboundDataType>
+        <outboundDataType>JSON</outboundDataType>
+        <inboundProperties class="com.mirth.connect.plugins.datatypes.raw.RawDataTypeProperties" version="3.5.1">
+          <batchProperties class="com.mirth.connect.plugins.datatypes.raw.RawBatchProperties" version="3.5.1">
+            <splitType>JavaScript</splitType>
+            <batchScript></batchScript>
+          </batchProperties>
+        </inboundProperties>
+        <outboundProperties class="com.mirth.connect.plugins.datatypes.json.JSONDataTypeProperties" version="3.5.1">
+          <batchProperties class="com.mirth.connect.plugins.datatypes.json.JSONBatchProperties" version="3.5.1">
+            <splitType>JavaScript</splitType>
+            <batchScript></batchScript>
+          </batchProperties>
+        </outboundProperties>
+      </transformer>
+      <responseTransformer version="3.5.1">
+        <elements/>
+        <inboundDataType>JSON</inboundDataType>
+        <outboundDataType>JSON</outboundDataType>
+        <inboundProperties class="com.mirth.connect.plugins.datatypes.json.JSONDataTypeProperties" version="3.5.1">
+          <batchProperties class="com.mirth.connect.plugins.datatypes.json.JSONBatchProperties" version="3.5.1">
+            <splitType>JavaScript</splitType>
+            <batchScript></batchScript>
+          </batchProperties>
+        </inboundProperties>
+        <outboundProperties class="com.mirth.connect.plugins.datatypes.json.JSONDataTypeProperties" version="3.5.1">
+          <batchProperties class="com.mirth.connect.plugins.datatypes.json.JSONBatchProperties" version="3.5.1">
+            <splitType>JavaScript</splitType>
+            <batchScript></batchScript>
+          </batchProperties>
+        </outboundProperties>
+      </responseTransformer>
+      <filter version="3.5.1">
+        <elements/>
+      </filter>
+      <transportName>Channel Writer</transportName>
+      <mode>DESTINATION</mode>
+      <enabled>true</enabled>
+      <waitForPrevious>false</waitForPrevious>
+    </connector>
+    <connector version="3.5.1">
+      <metaDataId>3</metaDataId>
+      <name>UPLOAD PHC Notes</name>
+      <properties class="com.mirth.connect.connectors.vm.VmDispatcherProperties" version="3.5.1">
+        <pluginProperties/>
+        <destinationConnectorProperties version="3.5.1">
+          <queueEnabled>false</queueEnabled>
+          <sendFirst>false</sendFirst>
+          <retryIntervalMillis>10000</retryIntervalMillis>
+          <regenerateTemplate>false</regenerateTemplate>
+          <retryCount>0</retryCount>
+          <rotate>false</rotate>
+          <includeFilterTransformer>false</includeFilterTransformer>
+          <threadCount>1</threadCount>
+          <threadAssignmentVariable></threadAssignmentVariable>
+          <validateResponse>false</validateResponse>
+          <resourceIds class="linked-hash-map">
+            <entry>
+              <string>Default Resource</string>
+              <string>[Default Resource]</string>
+            </entry>
+          </resourceIds>
+          <queueBufferSize>1000</queueBufferSize>
+          <reattachAttachments>true</reattachAttachments>
+        </destinationConnectorProperties>
+        <channelId>none</channelId>
+        <channelTemplate>${message.encodedData}</channelTemplate>
+        <mapVariables/>
+      </properties>
+      <transformer version="3.5.1">
+        <elements>
+          <com.mirth.connect.plugins.javascriptstep.JavaScriptStep>
+            <name>Post Data</name>
+            <sequenceNumber>0</sequenceNumber>
+            <script>if(sourceMap.get(&apos;method&apos;)==&apos;POST&apos;){
+	if(connectorMessage.getRawData() != &apos;&apos;){
+		logger.info(connectorMessage.getRawData())
+		var data = JSON.parse(connectorMessage.getRawData());
+		var call_card_no = data[&apos;phc_info&apos;][&apos;call_card_no&apos;];
+		var received_call = data[&apos;phc_info&apos;][&apos;received_call&apos;];
+		var plate_no = data[&apos;phc_info&apos;][&apos;plate_no&apos;];
+		var remarks = data[&apos;phc_info&apos;][&apos;remarks&apos;];
+		var address = data[&apos;phc_info&apos;][&apos;address&apos;];
+		var landmark = data[&apos;phc_info&apos;][&apos;landmark&apos;];
+
+		var query = &quot;SELECT assign_id FROM phc_assign_ambulance WHERE call_card_no = ? &quot;;
+		var queryParameters = [call_card_no];
+
+		var result = $(&apos;functionExecuteQuery&apos;)(query, queryParameters);
+		var assign_id = &apos;&apos;;
+		while(result.next()){
+			assign_id = JSON.parse(result.getString(1));
+		}
+
+		data[&apos;notes&apos;].forEach(function(value, key){
+
+			var patient_name = data[&apos;notes&apos;][key][&apos;patient_info&apos;][&apos;patient_name&apos;];
+			var gender = data[&apos;notes&apos;][key][&apos;patient_info&apos;][&apos;gender&apos;];
+			var identification_no = data[&apos;notes&apos;][key][&apos;patient_info&apos;][&apos;identification_no&apos;]
+			var json_detail = JSON.stringify(data[&apos;notes&apos;][key]);
+			
+			var doc_query = &quot;INSERT INTO temp_document_phc (assign_id, patient_name, identification_no, gender, json_details) VALUE (?,?,?,?,?)&quot;;
+			var doc_queryParameters = [assign_id, patient_name, identification_no, gender, json_detail ];
+			
+			$(&apos;functionInsertInsertQuery&apos;)(doc_query, doc_queryParameters);
+			});
+	}
+}</script>
+          </com.mirth.connect.plugins.javascriptstep.JavaScriptStep>
+        </elements>
+        <inboundTemplate encoding="base64">ewoJInBoY19pbmZvIjp7CgkJImNhbGxfY2FyZF9ubyI6IiIsCgkJInJlY2VpdmVkX2NhbGwiOiAi
+IiwKCQkicGxhdGVfbm8iOiIiLAoJCSJyZW1hcmtzIjoiIiwKCQkiYWRkcmVzcyI6IiIsCgkJImxh
+bmRtYXJrIjoiIiwKCQkicmVzcG9uc2VfdGVhbSI6IiIKCX0sCgkibm90ZXMiOlsKCQl7CgkJCSJw
+YXRpZW50X2luZm8iOnsKCQkJCSJwYXRpZW50X25hbWUiOiIiLAoJCQkJImlkZW50aWZpY2F0aW9u
+X25vIjoiIiwKCQkJCSJnZW5kZXIiOiIiLAoJCQkJImFnZSI6IiIsCgkJCQkiYWxlcmd5IjoiIiwK
+CQkJCSJwYXN0X3N1cmdpY2FsX2hpc3RvcnkiOiIiLAoJCQkJInBhc3RfbWVkaWNhbF9oaXN0b3J5
+IjoiIiwKCQkJCSJhaXJ3YXkiOiIiLAoJCQkJImJyZWF0aGluZyI6IiIKCQkJfSwKCQkJInByb2Nl
+c3NfdGltZSI6ewoJCQkJImFjdGl2YXRpb24iOiIiLAoJCQkJImRlcGFydF90b19zY2VuZSI6IiIs
+CgkJCQkiYXJyaXZlX3RvX3NjZW5lIjoiIiwKCQkJCSJhcnJpdmVfdG9fcGF0aWVudCI6IiIsCgkJ
+CQkiZGVwYXJ0X3RvX3NjZW5lIjoiIiwKCQkJCSJhcnJpdmVfdG9fc2NlbmUiOiIiCgkJCX0sCgkJ
+CSJ2aXRhbF9zaWduc19hbmRfb3RoZXJfb2JzZXJ2YXRpb24iOlsKCQkJCXsKCQkJCQkidGltZXN0
+YW1wIjoiIiwKCQkJCQkiYnBfc3lzdG9saWMiOiIiLAoJCQkJCSJicF9kaWFzdG9saWMiOiIiLAoJ
+CQkJCSJwciI6IiIsCgkJCQkJInJyIjoiIiwKCQkJCQkic3BvMiI6IiIsCgkJCQkJInRlbXAiOiIi
+LAoJCQkJCSJwYWluX3Njb3JlIjoiIiwKCQkJCQkibWFwIjoiIiwKCQkJCQkicHVsc2VfcmF0ZSI6
+IiIsCgkJCQkJInB1bHNlX3ZvbHVtZSI6IiIsCgkJCQkJImNydCI6IiIsCgkJCQkJInNob2NrX2lu
+ZGV4IjoiIiwKCQkJCQkiYmxvb2RfZ2x1Y29zZSI6IiIsCgkJCQkJImJsb29kX2tldG9uZSI6IiIs
+CgkJCQkJImdjcyI6IiIsCgkJCQkJImNhcmRpYWNfcmh5dGhtIjoiIiwKCQkJCQkiY29sb3IiOiIi
+LAoJCQkJCSJjb25zY2lvdXNfbGV2ZWwiOiIiLAoJCQkJCSJyaWdodF9wdXBpbCI6IiIsCgkJCQkJ
+ImxlZnRfcHVwaWwiOiIiCgkJCQl9LAoJCQkJewoJCQkJCSJ0aW1lc3RhbXAiOiIiLAoJCQkJCSJi
+cF9zeXN0b2xpYyI6IiIsCgkJCQkJImJwX2RpYXN0b2xpYyI6IiIsCgkJCQkJInByIjoiIiwKCQkJ
+CQkicnIiOiIiLAoJCQkJCSJzcG8yIjoiIiwKCQkJCQkidGVtcCI6IiIsCgkJCQkJInBhaW5fc2Nv
+cmUiOiIiLAoJCQkJCSJtYXAiOiIiLAoJCQkJCSJwdWxzZV9yYXRlIjoiIiwKCQkJCQkicHVsc2Vf
+dm9sdW1lIjoiIiwKCQkJCQkiY3J0IjoiIiwKCQkJCQkic2hvY2tfaW5kZXgiOiIiLAoJCQkJCSJi
+bG9vZF9nbHVjb3NlIjoiIiwKCQkJCQkiYmxvb2Rfa2V0b25lIjoiIiwKCQkJCQkiZ2NzIjoiIiwK
+CQkJCQkiY2FyZGlhY19yaHl0aG0iOiIiLAoJCQkJCSJjb2xvciI6IiIsCgkJCQkJImNvbnNjaW91
+c19sZXZlbCI6IiIsCgkJCQkJInJpZ2h0X3B1cGlsIjoiIiwKCQkJCQkibGVmdF9wdXBpbCI6IiIK
+CQkJCX0KCQkJCV0sCgkJCSJpbml0aWFsX3Jlc3VzY2l0YXRpb25fYW5kX3RyZWF0bWVudCI6ewoJ
+CQkJInBvc2l0aW9uIjoiIiwKCQkJCSJwcm90ZWN0X25lY2siOiIiLAoJCQkJIm9wZW5fYWlyd2F5
+IjoiIiwKCQkJCSJveHlnZW5fbG1pbiI6IiIsCgkJCQkiYWlyd2F5X2FkanVuY3QiOiIiLAoJCQkJ
+ImRlZmluaXRpdmVfYWlyd2F5IjoiIiwKCQkJCSJ2ZW50aWxhdGlvbl9zdXBwb3J0IjoiIiwKCQkJ
+CSJ2ZW50aWxhdGlvbl90eXBlIjoiIiwKCQkJCSJzZXR0aW5nIjoiIiwKCQkJCSJjaXJjdWxhdGlv
+biI6IiIsCgkJCQkiY3ByIjoiIiwKCQkJCSJhZWQiOiIiLAoJCQkJInJvc2MiOiIiLAoJCQkJInJl
+bWFya3MiOiIiCgkJCX0sCgkJCSJvdGhlcl90cmVhdG1lbnQiOnsKCQkJCSJibGFua2V0IjoiIiwK
+CQkJCSJtZWRpY2F0aW9uIjoiIiwKCQkJCSJkaWFnbm9zaXMiOiIiLAoJCQkJImV0ZF90cmlhZ2Ui
+OiIiCgkJCX0KCQl9LAoJCXsKCQkJInBhdGllbnRfaW5mbyI6ewoJCQkJInBhdGllbnRfbmFtZSI6
+IiIsCgkJCQkiaWRlbnRpZmljYXRpb25fbm8iOiIiLAoJCQkJImdlbmRlciI6IiIsCgkJCQkiYWdl
+IjoiIiwKCQkJCSJhbGVyZ3kiOiIiLAoJCQkJInBhc3Rfc3VyZ2ljYWxfaGlzdG9yeSI6IiIsCgkJ
+CQkicGFzdF9tZWRpY2FsX2hpc3RvcnkiOiIiLAoJCQkJImFpcndheSI6IiIsCgkJCQkiYnJlYXRo
+aW5nIjoiIgoJCQl9LAoJCQkicHJvY2Vzc190aW1lIjp7CgkJCQkiYWN0aXZhdGlvbiI6IiIsCgkJ
+CQkiZGVwYXJ0X3RvX3NjZW5lIjoiIiwKCQkJCSJhcnJpdmVfdG9fc2NlbmUiOiIiLAoJCQkJImFy
+cml2ZV90b19wYXRpZW50IjoiIiwKCQkJCSJkZXBhcnRfdG9fc2NlbmUiOiIiLAoJCQkJImFycml2
+ZV90b19zY2VuZSI6IiIKCQkJfSwKCQkJInZpdGFsX3NpZ25zX2FuZF9vdGhlcl9vYnNlcnZhdGlv
+biI6WwoJCQkJewoJCQkJCSJicF9zeXN0b2xpYyI6IiIsCgkJCQkJImJwX2RpYXN0b2xpYyI6IiIs
+CgkJCQkJInByIjoiIiwKCQkJCQkicnIiOiIiLAoJCQkJCSJzcG8yIjoiIiwKCQkJCQkidGVtcCI6
+IiIsCgkJCQkJInBhaW5fc2NvcmUiOiIiLAoJCQkJCSJtYXAiOiIiLAoJCQkJCSJwdWxzZV9yYXRl
+IjoiIiwKCQkJCQkicHVsc2Vfdm9sdW1lIjoiIiwKCQkJCQkiY3J0IjoiIiwKCQkJCQkic2hvY2tf
+aW5kZXgiOiIiLAoJCQkJCSJibG9vZF9nbHVjb3NlIjoiIiwKCQkJCQkiYmxvb2Rfa2V0b25lIjoi
+IiwKCQkJCQkiZ2NzIjoiIiwKCQkJCQkiY2FyZGlhY19yaHl0aG0iOiIiLAoJCQkJCSJjb2xvciI6
+IiIsCgkJCQkJImNvbnNjaW91c19sZXZlbCI6IiIsCgkJCQkJInJpZ2h0X3B1cGlsIjoiIiwKCQkJ
+CQkibGVmdF9wdXBpbCI6IiIKCQkJCX0KCQkJCV0sCgkJCSJpbml0aWFsX3Jlc3VzY2l0YXRpb25f
+YW5kX3RyZWF0bWVudCI6ewoJCQkJInBvc2l0aW9uIjoiIiwKCQkJCSJwcm90ZWN0X25lY2siOiIi
+LAoJCQkJIm9wZW5fYWlyd2F5IjoiIiwKCQkJCSJveHlnZW5fbG1pbiI6IiIsCgkJCQkiYWlyd2F5
+X2FkanVuY3QiOiIiLAoJCQkJImRlZmluaXRpdmVfYWlyd2F5IjoiIiwKCQkJCSJ2ZW50aWxhdGlv
+bl9zdXBwb3J0IjoiIiwKCQkJCSJ2ZW50aWxhdGlvbl90eXBlIjoiIiwKCQkJCSJzZXR0aW5nIjoi
+IiwKCQkJCSJjaXJjdWxhdGlvbiI6IiIsCgkJCQkiY3ByIjoiIiwKCQkJCSJhZWQiOiIiLAoJCQkJ
+InJvc2MiOiIiLAoJCQkJInJlbWFya3MiOiIiCgkJCX0sCgkJCSJvdGhlcl90cmVhdG1lbnQiOnsK
+CQkJCSJibGFua2V0IjoiIiwKCQkJCSJtZWRpY2F0aW9uIjoiIiwKCQkJCSJkaWFnbm9zaXMiOiIi
+LAoJCQkJImV0ZF90cmlhZ2UiOiIiCgkJCX0KCQl9XQp9</inboundTemplate>
+        <outboundTemplate encoding="base64"></outboundTemplate>
+        <inboundDataType>RAW</inboundDataType>
+        <outboundDataType>JSON</outboundDataType>
+        <inboundProperties class="com.mirth.connect.plugins.datatypes.raw.RawDataTypeProperties" version="3.5.1">
+          <batchProperties class="com.mirth.connect.plugins.datatypes.raw.RawBatchProperties" version="3.5.1">
+            <splitType>JavaScript</splitType>
+            <batchScript></batchScript>
+          </batchProperties>
+        </inboundProperties>
+        <outboundProperties class="com.mirth.connect.plugins.datatypes.json.JSONDataTypeProperties" version="3.5.1">
+          <batchProperties class="com.mirth.connect.plugins.datatypes.json.JSONBatchProperties" version="3.5.1">
+            <splitType>JavaScript</splitType>
+            <batchScript></batchScript>
+          </batchProperties>
+        </outboundProperties>
+      </transformer>
+      <responseTransformer version="3.5.1">
+        <elements/>
+        <inboundDataType>JSON</inboundDataType>
+        <outboundDataType>JSON</outboundDataType>
+        <inboundProperties class="com.mirth.connect.plugins.datatypes.json.JSONDataTypeProperties" version="3.5.1">
+          <batchProperties class="com.mirth.connect.plugins.datatypes.json.JSONBatchProperties" version="3.5.1">
+            <splitType>JavaScript</splitType>
+            <batchScript></batchScript>
+          </batchProperties>
+        </inboundProperties>
+        <outboundProperties class="com.mirth.connect.plugins.datatypes.json.JSONDataTypeProperties" version="3.5.1">
+          <batchProperties class="com.mirth.connect.plugins.datatypes.json.JSONBatchProperties" version="3.5.1">
+            <splitType>JavaScript</splitType>
+            <batchScript></batchScript>
+          </batchProperties>
+        </outboundProperties>
+      </responseTransformer>
+      <filter version="3.5.1">
+        <elements/>
+      </filter>
+      <transportName>Channel Writer</transportName>
+      <mode>DESTINATION</mode>
+      <enabled>true</enabled>
+      <waitForPrevious>false</waitForPrevious>
+    </connector>
+    <connector version="3.5.1">
+      <metaDataId>4</metaDataId>
+      <name>READ ED Users</name>
+      <properties class="com.mirth.connect.connectors.vm.VmDispatcherProperties" version="3.5.1">
+        <pluginProperties/>
+        <destinationConnectorProperties version="3.5.1">
+          <queueEnabled>false</queueEnabled>
+          <sendFirst>false</sendFirst>
+          <retryIntervalMillis>10000</retryIntervalMillis>
+          <regenerateTemplate>false</regenerateTemplate>
+          <retryCount>0</retryCount>
+          <rotate>false</rotate>
+          <includeFilterTransformer>false</includeFilterTransformer>
+          <threadCount>1</threadCount>
+          <threadAssignmentVariable></threadAssignmentVariable>
+          <validateResponse>false</validateResponse>
+          <resourceIds class="linked-hash-map">
+            <entry>
+              <string>Default Resource</string>
+              <string>[Default Resource]</string>
+            </entry>
+          </resourceIds>
+          <queueBufferSize>1000</queueBufferSize>
+          <reattachAttachments>true</reattachAttachments>
+        </destinationConnectorProperties>
+        <channelId>none</channelId>
+        <channelTemplate>${message.encodedData}</channelTemplate>
+        <mapVariables/>
+      </properties>
+      <transformer version="3.5.1">
+        <elements>
+          <com.mirth.connect.plugins.javascriptstep.JavaScriptStep>
+            <name>GET LIST</name>
+            <sequenceNumber>0</sequenceNumber>
+            <script>if(sourceMap.get(&apos;method&apos;)==&apos;GET&apos;){
+	var query = &quot;select uid_staffname, uid_password, uid_userid, uid_staffno from userid where discipline_code = &apos;06&apos; and uid_useridsts = 1&quot;
+
+	var queryParameters = [];
+	logger.info(query)
+	var result = $(&apos;functionExecuteQuery&apos;)(query,queryParameters);
+
+	var responseData = [];
+	while(result.next()){
+		var call_card = {
+			staff_name: result.getString(1),
+			user_password: result.getString(2),
+			user_id: result.getString(3),
+			staff_no: result.getString(4)
+		}
+		responseData.push(call_card);
+	}
+
+	var finalResult = {result: responseData};
+	$(&apos;finalResponse&apos;)(finalResult);
+}</script>
+          </com.mirth.connect.plugins.javascriptstep.JavaScriptStep>
+        </elements>
+        <inboundTemplate encoding="base64"></inboundTemplate>
+        <outboundTemplate encoding="base64"></outboundTemplate>
+        <inboundDataType>RAW</inboundDataType>
+        <outboundDataType>JSON</outboundDataType>
+        <inboundProperties class="com.mirth.connect.plugins.datatypes.raw.RawDataTypeProperties" version="3.5.1">
+          <batchProperties class="com.mirth.connect.plugins.datatypes.raw.RawBatchProperties" version="3.5.1">
+            <splitType>JavaScript</splitType>
+            <batchScript></batchScript>
+          </batchProperties>
+        </inboundProperties>
+        <outboundProperties class="com.mirth.connect.plugins.datatypes.json.JSONDataTypeProperties" version="3.5.1">
+          <batchProperties class="com.mirth.connect.plugins.datatypes.json.JSONBatchProperties" version="3.5.1">
+            <splitType>JavaScript</splitType>
+            <batchScript></batchScript>
+          </batchProperties>
+        </outboundProperties>
+      </transformer>
+      <responseTransformer version="3.5.1">
+        <elements/>
+        <inboundDataType>JSON</inboundDataType>
+        <outboundDataType>JSON</outboundDataType>
+        <inboundProperties class="com.mirth.connect.plugins.datatypes.json.JSONDataTypeProperties" version="3.5.1">
+          <batchProperties class="com.mirth.connect.plugins.datatypes.json.JSONBatchProperties" version="3.5.1">
+            <splitType>JavaScript</splitType>
+            <batchScript></batchScript>
+          </batchProperties>
+        </inboundProperties>
+        <outboundProperties class="com.mirth.connect.plugins.datatypes.json.JSONDataTypeProperties" version="3.5.1">
+          <batchProperties class="com.mirth.connect.plugins.datatypes.json.JSONBatchProperties" version="3.5.1">
+            <splitType>JavaScript</splitType>
+            <batchScript></batchScript>
+          </batchProperties>
+        </outboundProperties>
+      </responseTransformer>
+      <filter version="3.5.1">
+        <elements/>
+      </filter>
+      <transportName>Channel Writer</transportName>
+      <mode>DESTINATION</mode>
+      <enabled>true</enabled>
+      <waitForPrevious>false</waitForPrevious>
+    </connector>
+  </destinationConnectors>
+  <preprocessingScript>// Modify the message variable below to pre process data
+return message;</preprocessingScript>
+  <postprocessingScript>// This script executes once after a message has been processed
+// Responses returned from here will be stored as &quot;Postprocessor&quot; in the response map
+
+logger.info(channelMap.get(&apos;responseContent&apos;));
+var getResponseContent = channelMap.get(&apos;responseContent&apos;);
+if(getResponseContent!=null){
+	return channelMap.get(&apos;responseContent&apos;).toString();	
+}
+</postprocessingScript>
+  <deployScript>// This script executes once when the channel is deployed
+// You only have access to the globalMap and globalChannelMap here to persist data
+return ;</deployScript>
+  <undeployScript>// This script executes once when the channel is undeployed
+// You only have access to the globalMap and globalChannelMap here to persist data
+return;</undeployScript>
+  <properties version="3.5.1">
+    <clearGlobalChannelMap>true</clearGlobalChannelMap>
+    <messageStorageMode>DEVELOPMENT</messageStorageMode>
+    <encryptData>false</encryptData>
+    <removeContentOnCompletion>false</removeContentOnCompletion>
+    <removeOnlyFilteredOnCompletion>false</removeOnlyFilteredOnCompletion>
+    <removeAttachmentsOnCompletion>false</removeAttachmentsOnCompletion>
+    <initialState>STARTED</initialState>
+    <storeAttachments>false</storeAttachments>
+    <metaDataColumns>
+      <metaDataColumn>
+        <name>SOURCE</name>
+        <type>STRING</type>
+        <mappingName>mirth_source</mappingName>
+      </metaDataColumn>
+      <metaDataColumn>
+        <name>TYPE</name>
+        <type>STRING</type>
+        <mappingName>mirth_type</mappingName>
+      </metaDataColumn>
+    </metaDataColumns>
+    <attachmentProperties version="3.5.1">
+      <type>None</type>
+      <properties/>
+    </attachmentProperties>
+    <resourceIds class="linked-hash-map">
+      <entry>
+        <string>Default Resource</string>
+        <string>[Default Resource]</string>
+      </entry>
+    </resourceIds>
+  </properties>
+  <exportData>
+    <metadata>
+      <enabled>true</enabled>
+      <lastModified>
+        <time>1545037000362</time>
+        <timezone>Asia/Kuala_Lumpur</timezone>
+      </lastModified>
+      <pruningSettings>
+        <archiveEnabled>true</archiveEnabled>
+      </pruningSettings>
+    </metadata>
+    <channelTags/>
+  </exportData>
+</channel>
